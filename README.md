@@ -157,22 +157,17 @@ A especificação completa (transições, derivação, justificativas, prova de 
 
 O problema, as gramáticas, os autômatos e os casos de teste foram elaborados para este trabalho e não foram adaptados de exercícios de sala nem do exemplo do enunciado. As referências teóricas estão no relatório.
 
-**Inteligência artificial:** usamos o **Claude Code (Anthropic)** como apoio para:
+**Inteligência artificial:** o autor usou o **Claude Code (Anthropic)** como apoio para:
 - propor o problema e a modelagem;
 - escrever o código dos simuladores, do painel interativo, da visão de compilador e dos testes;
 - redigir o relatório e os slides.
 
-A equipe verificou:
+O autor verificou:
 - cada transição dos dois autômatos, comparando o código com as tabelas do relatório;
 - os rastreamentos dos três cenários de integração, executados à mão;
 - as provas de classificação (lema do bombeamento);
 - o resultado de `python3 testes.py`.
 
-## Equipe
+## Autor
 
-| Nome completo | Turma | Contribuição |
-|---|---|---|
-| _Integrante 1_ | _CC6__ | _…_ |
-| _Integrante 2_ | _CC6__ | _…_ |
-| _Integrante 3_ | _CC6__ | _…_ |
-| _Integrante 4_ | _CC6__ | _…_ |
+Trabalho individual de **Andrey de Matos Gonçalves**, turma CC6NA. O autor fez todas as etapas: modelagem, provas, implementação, testes, painel, relatório e slides.

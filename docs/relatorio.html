@@ -40,18 +40,14 @@
 <body>
 
 <section class="capa">
-  <div class="sub"><span class="preencher">[NOME DA INSTITUIÇÃO]</span><br>Curso de Ciência da Computação<br>Linguagens Formais e Autômatos</div>
+  <div class="sub">Curso de Ciência da Computação<br>Linguagens Formais e Autômatos</div>
   <div>
     <h1>Validador de voos de drone de entrega</h1><div class="sub" style="font-size:14pt">Reconhecimento de linguagens com autômato de pilha<br>e autômato linearmente limitado</div><br>
     <div class="sub">Relatório técnico do trabalho prático</div>
   </div>
   <div class="equipe">
-    Turma: <span class="preencher">[CC6MA / CC6NA]</span><br>
-    <span class="preencher">[Nome completo do integrante 1]</span><br>
-    <span class="preencher">[Nome completo do integrante 2]</span><br>
-    <span class="preencher">[Nome completo do integrante 3]</span><br>
-    <span class="preencher">[Nome completo do integrante 4]</span><br><br>
-    Professor(a): <span class="preencher">[nome]</span><br>
+    <strong>Andrey de Matos Gonçalves</strong><br>
+    Turma CC6NA · trabalho individual<br><br>
     Repositório: https://github.com/andreyyrson/validador-drone-ap-all<br>Painel interativo: https://andreyyrson.github.io/validador-drone-ap-all/web/
   </div>
   <div class="sub">Novembro de 2026</div>
@@ -61,7 +57,7 @@
 <div class="sumario">
 1. O problema<br>2. Fontes consultadas<br>3. Etapa 1: a linguagem livre de contexto<br>4. O autômato de pilha<br>
 5. Etapa 2: a linguagem sensível ao contexto<br>6. O autômato linearmente limitado<br>7. Implementação<br>8. Testes<br>
-9. Análise dos resultados e limitações<br>10. Contribuição de cada integrante<br>11. Uso de inteligência artificial<br>Apêndices A e B: transições completas
+9. Análise dos resultados e limitações<br>10. Contribuição do autor<br>11. Uso de inteligência artificial<br>Apêndices A e B: transições completas
 </div>
 
 <h2>1. O problema</h2>
@@ -88,7 +84,7 @@
   <li>KURODA, S.-Y. Classes of languages and linear-bounded automata. <em>Information and Control</em>, v. 7, n. 2, p. 207–223, 1964. Equivalência entre linguagens sensíveis ao contexto e autômatos linearmente limitados.</li>
   <li>PYTHON SOFTWARE FOUNDATION. <em>Python 3 documentation</em>: módulos <code>argparse</code>, <code>csv</code>, <code>json</code> e <code>random</code>. Disponível em: https://docs.python.org/3/.</li>
 </ul>
-<p>As referências embasam os conceitos e os métodos de prova. O problema, as linguagens, as gramáticas, os autômatos e os casos de teste foram elaborados pela equipe e não foram adaptados de exercícios de sala nem do exemplo do enunciado.</p>
+<p>As referências embasam os conceitos e os métodos de prova. O problema, as linguagens, as gramáticas, os autômatos e os casos de teste foram elaborados pelo autor e não foram adaptados de exercícios de sala nem do exemplo do enunciado.</p>
 
 <h2>3. Etapa 1: a linguagem livre de contexto</h2>
 <h3>3.1 Alfabeto e regra de formação</h3>
@@ -483,23 +479,27 @@ ERRO: o 19º símbolo, &#x27;N&#x27;, não pertence ao alfabeto de entrada {g, a
   <li><strong>Divisão de responsabilidades.</strong> O AP aceita registros de tamanhos diferentes (caso AP nº 3), porque tamanho e conteúdo dos registros são papel do ALL. No fluxo completo a cadeia seria barrada na etapa 2.</li>
 </ol>
 
-<h2>10. Contribuição de cada integrante</h2>
-<table>
-  <tr><th>Integrante</th><th>Contribuição</th><th>Parte apresentada</th></tr>
-  <tr><td class="preencher">[Nome 1]</td><td class="preencher">[ex.: problema, GLC e derivação]</td><td class="preencher">problema e GLC</td></tr>
-  <tr><td class="preencher">[Nome 2]</td><td class="preencher">[ex.: especificação e implementação do AP]</td><td class="preencher">AP e rastreamento</td></tr>
-  <tr><td class="preencher">[Nome 3]</td><td class="preencher">[ex.: especificação e implementação do ALL]</td><td class="preencher">ALL e limite da fita</td></tr>
-  <tr><td class="preencher">[Nome 4]</td><td class="preencher">[ex.: provas de classificação, testes e relatório]</td><td class="preencher">testes e limitações</td></tr>
-</table>
+<h2>10. Contribuição do autor</h2>
+<p>Trabalho individual (equipe de 1 integrante, como permite a lauda). <strong>Andrey de Matos Gonçalves</strong> (turma CC6NA) foi responsável por todas as etapas:</p>
+<ul>
+  <li>escolha do problema;</li>
+  <li>gramática e derivação;</li>
+  <li>especificação do AP e do ALL;</li>
+  <li>provas de classificação;</li>
+  <li>implementação e testes;</li>
+  <li>painel interativo;</li>
+  <li>relatório, slides e apresentação.</li>
+</ul>
+<p>O apoio de IA está descrito na seção 11.</p>
 
 <h2>11. Uso de inteligência artificial</h2>
-<p>A equipe usou o <strong>Claude Code (Anthropic)</strong> como ferramenta de apoio para:</p>
+<p>O autor usou o <strong>Claude Code (Anthropic)</strong> como ferramenta de apoio para:</p>
 <ul>
   <li>sugerir o problema e a modelagem;</li>
   <li>gerar o código dos simuladores, do painel interativo e dos testes;</li>
   <li>redigir o relatório e os slides.</li>
 </ul>
-<p>A equipe conferiu:</p>
+<p>O autor conferiu:</p>
 <ul>
   <li><span class="preencher">[confirmar]</span> cada transição das tabelas das seções 4.2 e 6.3 contra o código (Apêndices A e B, gerados a partir do próprio código);</li>
   <li>os rastreamentos dos três cenários de integração, executados à mão;</li>

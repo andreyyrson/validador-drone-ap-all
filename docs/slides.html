@@ -70,15 +70,14 @@
     <p class="sub" style="font-size:20px">MISSÃO LFA · ENTREGAR, VOLTAR E PROVAR QUE VOLTOU</p>
     <h1>Validador de voos de drone de entrega:<br>AP + ALL</h1>
     <p style="font-size:22px; margin:6px 0 30px">Reconhecimento de linguagens com pilha e fita limitada</p>
-    <p style="font-size:19px; margin:2px 0"><b>Disciplina:</b> Linguagens Formais e Autômatos · <b>Turma:</b> [CC6MA / CC6NA]</p>
-    <p style="font-size:19px; margin:2px 0"><b>Integrantes:</b> [Nome completo 1] · [Nome completo 2] · [Nome completo 3] · [Nome completo 4]</p>
+    <p style="font-size:19px; margin:2px 0"><b>Disciplina:</b> Linguagens Formais e Autômatos · <b>Turma:</b> CC6NA</p>
+    <p style="font-size:19px; margin:2px 0"><b>Aluno:</b> Andrey de Matos Gonçalves · trabalho individual</p>
     <p style="font-size:19px; margin:2px 0">Novembro de 2026</p>
   </div>
 </section>
 
 <!-- 2 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 1</span>
   <h2>Missão: entregar e voltar pelo mesmo caminho</h2>
   <p class="sub">O problema que o validador resolve</p>
   <div class="cols">
@@ -128,7 +127,6 @@
 
 <!-- 3 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 1</span>
   <h2>Controle de voo em duas etapas</h2>
   <p class="sub">Primeiro a estrutura (pilha); depois a dependência sensível ao contexto (fita)</p>
   <div class="fluxo">
@@ -156,7 +154,6 @@
 
 <!-- 4 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 2</span>
   <h2>O plano de voo como gramática (GLC)</h2>
   <p class="sub">G = (V, Σ, P, P) · V = {P, R, G} · Σ = {B, N, S, L, O, E, #, |, g, a, v} · símbolo inicial P</p>
   <div class="cols">
@@ -197,7 +194,6 @@
 
 <!-- 5 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 2</span>
   <h2>Etapa 1: autômato de pilha, o diário de bordo da volta</h2>
   <p class="sub">M = (Q, Σ, Γ, δ, q0, Z, F) · Q = {q0, …, q8} (9 estados) · Γ = {N, S, L, O, Z} · F = {q8}</p>
   <div class="diag"><img src="img/diagrama_ap.svg" style="height:440px" alt="Diagrama de estados do AP"></div>
@@ -206,7 +202,6 @@
 
 <!-- 6 ─────────────────────────────────────────────── -->
 <section class="compacto">
-  <span class="quem">Integrante 2</span>
   <h2>A pilha em ação: último movimento, primeiro a desfazer</h2>
   <p class="sub">Rastreamento real: <code>python3 main.py --modulo ap "BNLLNESOOSB#gvag|aggv"</code></p>
   <div class="cols">
@@ -238,7 +233,6 @@
 
 <!-- 7 ─────────────────────────────────────────────── -->
 <section class="maior">
-  <span class="quem">Integrante 3</span>
   <h2>Por que precisamos de pilha… e depois de fita?</h2>
   <p class="sub">Classificação das duas linguagens (lema do bombeamento + propriedades de fechamento)</p>
   <div class="cols">
@@ -269,7 +263,6 @@
 
 <!-- 8 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 3</span>
   <h2>Etapa 2: ALL, a auditoria das caixas-pretas</h2>
   <p class="sub">M = (Q, Σ, Γ, δ, q0, &lt;, &gt;, qac, qrej) · 12 estados · Σ = {g, a, v, |} · Γ = Σ ∪ {X, &lt;, &gt;}</p>
   <div class="cols">
@@ -288,7 +281,6 @@
 
 <!-- 9 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 3</span>
   <h2>A fita em ação: n células, dois marcadores fixos</h2>
   <p class="sub">Rastreamento real: <code>python3 main.py --modulo all "gvag|aggv"</code></p>
   <div class="cols">
@@ -319,7 +311,6 @@
 
 <!-- 10 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 4</span>
   <h2>Por dentro do simulador</h2>
   <p class="sub">Python 3, só a biblioteca padrão: nada para instalar</p>
   <div class="cols">
@@ -346,7 +337,6 @@
 
 <!-- 10b ─── visão de compilador -->
 <section>
-  <span class="quem">Integrante 4</span>
   <h2>Do drone ao compilador</h2>
   <p class="sub">O mesmo voo passa pelas fases de um compilador, e cada fase usa um nível da hierarquia de Chomsky</p>
   <div class="cols">
@@ -381,7 +371,6 @@
 
 <!-- 11 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 4</span>
   <h2>Demonstração ao vivo no visualizador</h2>
   <p class="sub">Painel de missão: o drone voa a rota enquanto a pilha empilha e desempilha; depois a fita do ALL marca os X</p>
   <pre style="font-size:20px; padding:12px 18px; margin:4px 0 14px">$ <span class="hl">python3 visualizador.py</span>      → abre o painel (ou duplo clique em web/index.html)
@@ -400,7 +389,6 @@
 
 <!-- 12 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Integrante 4</span>
   <h2>Testes de voo: 44 casos, 0 falhas</h2>
   <p class="sub"><code>python3 testes.py</code> → tabela no terminal + <code>resultados_testes.md</code> (entrada, esperado, obtido, regra, motivo)</p>
   <table>
@@ -420,7 +408,6 @@
 
 <!-- 13 ─────────────────────────────────────────────── -->
 <section>
-  <span class="quem">Todos</span>
   <h2>Turbulências: limitações observadas</h2>
   <p class="sub">O que os testes revelaram sobre o modelo</p>
   <div class="cols">
@@ -455,7 +442,7 @@
       </ul>
     </div>
     <div style="flex:0.7">
-      <div class="card lar"><h3>Uso de inteligência artificial</h3><p><b>Ferramenta:</b> Claude Code (Anthropic).</p><p><b>Apoio:</b> código, testes, documentação e slides.</p><p><b>Verificação da equipe:</b> revisão das especificações, execução dos testes e conferência dos rastreamentos. Detalhes no README.</p></div>
+      <div class="card lar"><h3>Uso de inteligência artificial</h3><p><b>Ferramenta:</b> Claude Code (Anthropic).</p><p><b>Apoio:</b> código, testes, documentação e slides.</p><p><b>Verificação do autor:</b> revisão das especificações, execução dos testes e conferência dos rastreamentos. Detalhes no README.</p></div>
     </div>
   </div>
   <div style="position:absolute; left:60px; right:60px; bottom:60px; text-align:center">
