@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 710" width="1290" height="710"><defs><marker id="seta" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker></defs><rect width="100%" height="100%" fill="#fff"/><line x1="18" y1="340" x2="62" y2="340" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="30.0" y="318.0" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">início</text>
+<line x1="118.0" y1="340.0" x2="232.0" y2="340.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="175.0" y="324.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">&lt; / &lt;, D</text>
+<path d="M251.8,366.8 C239.8,427.7 172.3,360.2 233.2,348.2" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="192.1" y="407.9" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">X / X, D</text>
+<line x1="282.8" y1="323.8" x2="477.2" y2="186.2" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="374.7" y="226.9" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">g / X, D</text>
+<line x1="528.0" y1="170.0" x2="762.0" y2="170.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="645.0" y="154.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">| / |, D</text>
+<line x1="813.7" y1="184.9" x2="1036.3" y2="325.1" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="927.7" y="226.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">g / X, E</text>
+<path d="M486.9,145.3 C452.3,93.7 547.7,93.7 513.1,145.3" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="500.0" y="74.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D</text>
+<path d="M776.9,145.3 C742.3,93.7 837.7,93.7 803.1,145.3" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="790.0" y="45.6" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">X / X, D</text>
+<text x="790.0" y="66.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D (s≠g)</text>
+<line x1="288.0" y1="340.0" x2="472.0" y2="340.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="389.2" y="328.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">a / X, D</text>
+<line x1="528.0" y1="340.0" x2="762.0" y2="340.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="645.0" y="324.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">| / |, D</text>
+<line x1="818.0" y1="340.0" x2="1032.0" y2="340.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="914.3" y="328.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">a / X, E</text>
+<path d="M486.9,315.3 C452.3,263.7 547.7,263.7 513.1,315.3" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="500.0" y="244.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D</text>
+<path d="M776.9,315.3 C742.3,263.7 837.7,263.7 803.1,315.3" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="790.0" y="215.6" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">X / X, D</text>
+<text x="790.0" y="236.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D (s≠a)</text>
+<line x1="282.8" y1="356.2" x2="477.2" y2="493.8" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="374.7" y="453.1" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">v / X, D</text>
+<line x1="528.0" y1="510.0" x2="762.0" y2="510.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="645.0" y="494.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">| / |, D</text>
+<line x1="813.7" y1="495.1" x2="1036.3" y2="354.9" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="927.7" y="454.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">v / X, E</text>
+<path d="M513.1,534.7 C547.7,586.3 452.3,586.3 486.9,534.7" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="500.0" y="606.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D</text>
+<path d="M803.1,534.7 C837.7,586.3 742.3,586.3 776.9,534.7" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="790.0" y="614.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">X / X, D</text>
+<text x="790.0" y="634.4" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, D (s≠v)</text>
+<path d="M1084.7,326.9 C1136.3,292.3 1136.3,387.7 1084.7,353.1" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="1185.0" y="329.8" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s / s, E</text>
+<text x="1185.0" y="350.2" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">s ∈ {g,a,v,|,X}</text>
+<path d="M1060,312 L1060,38 Q1060,20 1042,20 L278,20 Q260,20 260,38 L260,312" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="1072.0" y="179.6" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">&lt; / &lt;, D</text>
+<text x="1072.0" y="200.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">(próximo</text>
+<text x="1072.0" y="220.4" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="start" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">evento)</text>
+<line x1="260.0" y1="368.0" x2="260.0" y2="562.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="216.0" y="484.4" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">| / |, D</text>
+<path d="M284.7,576.9 C336.3,542.3 336.3,637.7 284.7,603.1" fill="none" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="356.0" y="590.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">X / X, D</text>
+<line x1="232.0" y1="590.0" x2="118.0" y2="590.0" stroke="#333" stroke-width="1.8" marker-end="url(#seta)"/>
+<text x="175.0" y="574.0" font-family="Ubuntu Mono, DejaVu Sans Mono, monospace" font-size="17" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">&gt; / &gt;, P</text>
+<circle cx="90" cy="340" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="90.0" y="341.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">q0</text>
+<circle cx="260" cy="340" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="260.0" y="341.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">q1</text>
+<circle cx="500" cy="170" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="500.0" y="171.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">cg</text>
+<circle cx="500" cy="340" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="500.0" y="341.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">ca</text>
+<circle cx="500" cy="510" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="500.0" y="511.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">cv</text>
+<circle cx="790" cy="170" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="790.0" y="171.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">bg</text>
+<circle cx="790" cy="340" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="790.0" y="341.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">ba</text>
+<circle cx="790" cy="510" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="790.0" y="511.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">bv</text>
+<circle cx="1060" cy="340" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="1060.0" y="341.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">qr</text>
+<circle cx="260" cy="590" r="28" fill="#eef3f9" stroke="#1f3a5f" stroke-width="2.2"/>
+<text x="260.0" y="591.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#1f3a5f" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">qv</text>
+<circle cx="90" cy="590" r="28" fill="#eef3f9" stroke="#2e7d32" stroke-width="2.2"/>
+<circle cx="90" cy="590" r="23" fill="none" stroke="#2e7d32" stroke-width="2"/>
+<text x="90.0" y="591.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#2e7d32" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">qac</text>
+<circle cx="1080" cy="600" r="28" fill="#eef3f9" stroke="#b03030" stroke-width="2.2" stroke-dasharray="6 4"/>
+<text x="1080.0" y="601.0" font-family="DejaVu Sans, sans-serif" font-size="19" font-weight="bold" fill="#b03030" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">qrej</text>
+<line x1="900" y1="600" x2="1052" y2="600" stroke="#b03030" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#seta)"/>
+<text x="1040.0" y="558.4" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#b03030" text-anchor="end" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">qualquer (estado, lido)</text>
+<text x="1040.0" y="577.6" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#b03030" text-anchor="end" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">sem δ definido</text>
+<text x="630.0" y="690.0" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#333" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="#fff" stroke-width="5" stroke-linejoin="round">Rótulo: lido / escrito, movimento (D = direita, E = esquerda, P = parado);  s ∈ {g,a,v} salvo indicação</text></svg>

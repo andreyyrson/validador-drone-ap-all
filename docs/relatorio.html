@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório técnico: Validador de voos de drone (AP + ALL)</title>
+<style>
+  @page { size: A4; margin: 2cm 2cm 2.2cm; }
+  body { font: 10.5pt/1.5 "DejaVu Serif", Georgia, serif; color: #1a1a1a; margin: 0; }
+  h1, h2, h3, h4, .capa, th, figcaption, .nota { font-family: "DejaVu Sans", Arial, sans-serif; }
+  h2 { font-size: 15pt; margin: 22pt 0 6pt; border-bottom: 1.5pt solid #1e3a5f; padding-bottom: 3pt; color: #1e3a5f; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 14pt 0 4pt; color: #1e3a5f; page-break-after: avoid; }
+  p { margin: 5pt 0; text-align: justify; }
+  code, .mono { font-family: "DejaVu Sans", Arial, sans-serif; letter-spacing: .4pt; background: #f1f4f9; padding: 0 2pt; border-radius: 2pt; font-size: 9.5pt; }
+  pre { font: 9.5pt/1.45 "DejaVu Sans", Arial, sans-serif; background: #f1f4f9; padding: 7pt 10pt; border-left: 3pt solid #1e3a5f; white-space: pre-wrap; page-break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font: 8.5pt/1.35 "DejaVu Sans", Arial, sans-serif; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  th { background: #1e3a5f; color: #fff; text-align: left; padding: 3pt 5pt; font-weight: 600; }
+  td { border-bottom: .5pt solid #c9d2e0; padding: 2.5pt 5pt; vertical-align: top; }
+  td code { background: none; padding: 0; }
+  td.small, .small { font-size: 7.5pt; color: #444; }
+  td.fita { font-family: "DejaVu Sans", Arial, sans-serif; white-space: nowrap; letter-spacing: 1pt; }
+  td.fita span, td.fita b { display: inline-block; min-width: 9pt; text-align: center; }
+  td.fita b.cab { background: #1e3a5f; color: #fff; border-radius: 2pt; }
+  td.gap { text-align: center; color: #888; }
+  figure { margin: 10pt 0; text-align: center; page-break-inside: avoid; }
+  figure img { max-width: 100%; }
+  figcaption { font-size: 8.5pt; color: #444; margin-top: 3pt; }
+  .caixa { border: 1pt solid #1e3a5f; background: #f5f8fc; padding: 6pt 10pt; margin: 8pt 0; page-break-inside: avoid; }
+  .nota { font-size: 8.5pt; color: #555; }
+  ol.cols { columns: 2; font: 8pt/1.4 "DejaVu Sans", Arial, sans-serif; padding-left: 22pt; }
+  .capa { height: 25cm; display: flex; flex-direction: column; justify-content: space-between; text-align: center; page-break-after: always; }
+  .capa h1 { font-size: 19pt; color: #1e3a5f; margin: 0 0 10pt; line-height: 1.25; }
+  .capa .sub { font-size: 13pt; color: #333; }
+  .capa .equipe { font-size: 11.5pt; line-height: 1.8; }
+  .preencher { background: #fff3c4; }
+  .sumario { columns: 2; font-family: "DejaVu Sans", Arial, sans-serif; font-size: 9.5pt; }
+  .quebra { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <div class="sub"><span class="preencher">[NOME DA INSTITUIÇÃO]</span><br>Curso de Ciência da Computação<br>Linguagens Formais e Autômatos</div>
+  <div>
+    <h1>Validador de voos de drone de entrega</h1><div class="sub" style="font-size:14pt">Reconhecimento de linguagens com autômato de pilha<br>e autômato linearmente limitado</div><br>
+    <div class="sub">Relatório técnico do trabalho prático</div>
+  </div>
+  <div class="equipe">
+    Turma: <span class="preencher">[CC6MA / CC6NA]</span><br>
+    <span class="preencher">[Nome completo do integrante 1]</span><br>
+    <span class="preencher">[Nome completo do integrante 2]</span><br>
+    <span class="preencher">[Nome completo do integrante 3]</span><br>
+    <span class="preencher">[Nome completo do integrante 4]</span><br><br>
+    Professor(a): <span class="preencher">[nome]</span><br>
+    Repositório: https://github.com/andreyyrson/validador-drone-ap-all<br>Painel interativo: https://andreyyrson.github.io/validador-drone-ap-all/web/
+  </div>
+  <div class="sub">Novembro de 2026</div>
+</section>
+
+<h2>Sumário</h2>
+<div class="sumario">
+1. O problema<br>2. Fontes consultadas<br>3. Etapa 1: a linguagem livre de contexto<br>4. O autômato de pilha<br>
+5. Etapa 2: a linguagem sensível ao contexto<br>6. O autômato linearmente limitado<br>7. Implementação<br>8. Testes<br>
+9. Análise dos resultados e limitações<br>10. Contribuição de cada integrante<br>11. Uso de inteligência artificial<br>Apêndices A e B: transições completas
+</div>
+
+<h2>1. O problema</h2>
+<p>Um drone de entrega sai da base, voa uma rota pela malha da cidade até o ponto de entrega e precisa <strong>voltar pelo mesmo caminho</strong>: o último trecho voado é o primeiro a ser desfeito, sempre na direção oposta. Isso evita áreas não autorizadas e reproduz o "fio de Ariadne" da navegação sem GPS confiável. Durante o voo, duas caixas-pretas (gravadores de eventos) registram o que aconteceu. A principal grava de forma síncrona. A reserva usa um buffer assíncrono e pode gravar os mesmos eventos <strong>em outra ordem</strong>. A auditoria exige que as duas tenham registrado exatamente os mesmos eventos, nas mesmas quantidades.</p>
+<p>O registro de um voo é uma cadeia com o formato <code>B w E inv(w) B # x | y</code>. A aplicação valida essa cadeia em duas etapas:</p>
+<ol>
+  <li><strong>Autômato de pilha (AP), estrutura.</strong> A cadeia segue o formato e a rota de volta é exatamente <code>inv(w)</code>, ou seja, a ida <code>w</code> lida de trás para frente com cada direção trocada pela oposta.</li>
+  <li><strong>Autômato linearmente limitado (ALL), dependência sensível ao contexto.</strong> Só roda se o AP aceitar e recebe o trecho <code>x|y</code> depois do <code>#</code>. Verifica se o registro reserva <code>y</code> é uma permutação do principal <code>x</code>.</li>
+</ol>
+<table>
+  <tr><th>Símbolo</th><th>Significado</th><th>Símbolo</th><th>Significado</th></tr>
+  <tr><td><code>B</code></td><td>base (partida e chegada)</td><td><code>#</code></td><td>fim da rota, início dos registros</td></tr>
+  <tr><td><code>N S L O</code></td><td>Norte, Sul, Leste, Oeste (opostos: N↔S, L↔O)</td><td><code>g a v</code></td><td>eventos: leitura de GPS, alerta de bateria, rajada de vento</td></tr>
+  <tr><td><code>E</code></td><td>ponto de entrega (meio da rota)</td><td><code>|</code></td><td>separa a caixa-preta principal da reserva</td></tr>
+</table>
+<p><strong>Exemplo.</strong> Em <code>BNLLNESOOSB#gvag|aggv</code> a ida é <code>NLLN</code> e a volta é <code>SOOS</code>: o último <code>N</code> é desfeito primeiro, por um <code>S</code>, depois os dois <code>L</code> por <code>O</code> e por fim o primeiro <code>N</code> por um <code>S</code>. O registro reserva <code>aggv</code> tem os mesmos eventos de <code>gvag</code> (2 <code>g</code>, 1 <code>v</code> e 1 <code>a</code>), por isso a cadeia é aceita pelas duas etapas.</p>
+
+<h2>2. Fontes consultadas</h2>
+<ul>
+  <li>SIPSER, M. <em>Introdução à Teoria da Computação</em>. 2. ed. São Paulo: Cengage Learning, 2007. Seções 1.4 (lema do bombeamento para linguagens regulares), 2.1 e 2.2 (gramáticas livres de contexto e autômatos de pilha), 2.3 (linguagens não livres de contexto) e 5.1 (autômatos linearmente limitados).</li>
+  <li>HOPCROFT, J. E.; MOTWANI, R.; ULLMAN, J. D. <em>Introdução à Teoria de Autômatos, Linguagens e Computação</em>. Rio de Janeiro: Campus/Elsevier, 2002. Capítulos sobre autômatos de pilha (aceitação por estado final e por pilha vazia; autômatos de pilha determinísticos) e sobre propriedades das linguagens livres de contexto (lema do bombeamento; fechamento sob interseção com linguagens regulares).</li>
+  <li>MENEZES, P. B. <em>Linguagens Formais e Autômatos</em>. 6. ed. Porto Alegre: Bookman, 2011 (Série Livros Didáticos UFRGS, v. 3). Hierarquia de Chomsky, gramáticas e máquinas com fita limitada.</li>
+  <li>AHO, A. V.; LAM, M. S.; SETHI, R.; ULLMAN, J. D. <em>Compiladores: princípios, técnicas e ferramentas</em>. 2. ed. São Paulo: Pearson Addison-Wesley, 2008. Seção 4.3.5 (construções de linguagem que não são livres de contexto) e capítulos sobre análise léxica, sintática e semântica.</li>
+  <li>KURODA, S.-Y. Classes of languages and linear-bounded automata. <em>Information and Control</em>, v. 7, n. 2, p. 207–223, 1964. Equivalência entre linguagens sensíveis ao contexto e autômatos linearmente limitados.</li>
+  <li>PYTHON SOFTWARE FOUNDATION. <em>Python 3 documentation</em>: módulos <code>argparse</code>, <code>csv</code>, <code>json</code> e <code>random</code>. Disponível em: https://docs.python.org/3/.</li>
+</ul>
+<p>As referências embasam os conceitos e os métodos de prova. O problema, as linguagens, as gramáticas, os autômatos e os casos de teste foram elaborados pela equipe e não foram adaptados de exercícios de sala nem do exemplo do enunciado.</p>
+
+<h2>3. Etapa 1: a linguagem livre de contexto</h2>
+<h3>3.1 Alfabeto e regra de formação</h3>
+<p>Σ<sub>AP</sub> = { B, N, S, L, O, E, #, |, g, a, v }. Seja <em>opp</em> a troca de direção (opp(N)=S, opp(S)=N, opp(L)=O, opp(O)=L) e, para w = x<sub>1</sub>x<sub>2</sub>…x<sub>k</sub>, seja inv(w) = opp(x<sub>k</sub>)…opp(x<sub>2</sub>)opp(x<sub>1</sub>).</p>
+<div class="caixa">L<sub>AP</sub> = { B w E inv(w) B # x | y &nbsp;:&nbsp; w ∈ {N,S,L,O}<sup>+</sup>, &nbsp;x, y ∈ {g,a,v}<sup>+</sup> }</div>
+<p>Em palavras: o voo parte da base, faz ao menos um movimento, entrega, volta desfazendo a ida em ordem inversa e chega à base. Depois vêm dois registros não vazios separados por <code>|</code>.</p>
+
+<h3>3.2 Gramática livre de contexto</h3>
+<p>G = (V, Σ<sub>AP</sub>, P, P), com não terminais V = { P, R, G }, símbolo inicial <strong>P</strong> (de "plano de voo") e produções:</p>
+<pre>P → B R B # G | G
+R → N R S  |  S R N  |  L R O  |  O R L          (um movimento na ida e o seu oposto na volta, aninhados)
+R → N E S  |  S E N  |  L E O  |  O E L          (o movimento mais interno e o ponto de entrega)
+G → g G  |  a G  |  v G  |  g  |  a  |  v        (registro não vazio de eventos)</pre>
+<p>Cada aplicação de <code>R → x R opp(x)</code> produz um movimento de ida e "promete" o movimento oposto depois de tudo o que R ainda vai gerar. As promessas se cumprem da mais interna para a mais externa, que é o comportamento LIFO de uma pilha.</p>
+
+<h3>3.3 Derivação de uma cadeia aceita</h3>
+<p>Derivação mais à esquerda de <code>BNLLNESOOSB#gvag|aggv</code> (21 símbolos):</p>
+<table>
+  <tr><th>#</th><th>Forma sentencial</th><th>Produção aplicada</th></tr>
+  <tr><td>0</td><td class="mono">P</td><td></td></tr>
+  <tr><td>1</td><td class="mono">B R B # G | G</td><td>P → B R B # G | G</td></tr>
+  <tr><td>2</td><td class="mono">B N R S B # G | G</td><td>R → N R S</td></tr>
+  <tr><td>3</td><td class="mono">B N L R O S B # G | G</td><td>R → L R O</td></tr>
+  <tr><td>4</td><td class="mono">B N L L R O O S B # G | G</td><td>R → L R O</td></tr>
+  <tr><td>5</td><td class="mono">B N L L N E S O O S B # G | G</td><td>R → N E S</td></tr>
+  <tr><td>6</td><td class="mono">B N L L N E S O O S B # g G | G</td><td>G → g G</td></tr>
+  <tr><td>7</td><td class="mono">B N L L N E S O O S B # g v G | G</td><td>G → v G</td></tr>
+  <tr><td>8</td><td class="mono">B N L L N E S O O S B # g v a G | G</td><td>G → a G</td></tr>
+  <tr><td>9</td><td class="mono">B N L L N E S O O S B # g v a g | G</td><td>G → g</td></tr>
+  <tr><td>10</td><td class="mono">B N L L N E S O O S B # g v a g | a G</td><td>G → a G</td></tr>
+  <tr><td>11</td><td class="mono">B N L L N E S O O S B # g v a g | a g G</td><td>G → g G</td></tr>
+  <tr><td>12</td><td class="mono">B N L L N E S O O S B # g v a g | a g g G</td><td>G → g G</td></tr>
+  <tr><td>13</td><td class="mono">B N L L N E S O O S B # g v a g | a g g v</td><td>G → v</td></tr>
+</table>
+<p>O aninhamento fica visível nos passos 2 a 5: <code>N [ L [ L [ N E S ] O ] O ] S</code>.</p>
+
+<h3>3.4 Classificação: L<sub>AP</sub> é livre de contexto e não é regular</h3>
+<p><strong>É livre de contexto</strong> porque é gerada pela GLC G (Lema 1, seção 4.4) e reconhecida pelo AP da seção 4.</p>
+<p><strong>Não é regular</strong> (lema do bombeamento para linguagens regulares; Sipser, seção 1.4). Suponha que L<sub>AP</sub> seja regular, com constante de bombeamento p. Tome s = B N<sup>p</sup> E S<sup>p</sup> B # g | g ∈ L<sub>AP</sub>, com |s| ≥ p. Em qualquer divisão s = xyz com |xy| ≤ p e |y| ≥ 1, o trecho xy fica dentro de "B N<sup>p−1</sup>". Se y contém o B inicial, a cadeia xz não começa por B e não pertence a L<sub>AP</sub>. Caso contrário, y = N<sup>k</sup> com k ≥ 1 e xy²z = B N<sup>p+k</sup> E S<sup>p</sup> B # g | g. Essa cadeia não pertence a L<sub>AP</sub>, porque inv(N<sup>p+k</sup>) = S<sup>p+k</sup> ≠ S<sup>p</sup>. Isso contradiz o lema. Intuitivamente, um autômato finito teria que lembrar quantos movimentos (e quais, em que ordem) faltam desfazer, sem limite, e isso exige memória ilimitada. É o papel da pilha.</p>
+
+<h2>4. O autômato de pilha</h2>
+<h3>4.1 Definição formal</h3>
+<p>M<sub>AP</sub> = (Q, Σ, Γ, δ, q<sub>0</sub>, Z, F), com:</p>
+<ul>
+  <li>Q = { q0, q1, q2, q3, q4, q5, q6, q7, q8 }: <strong>9 estados</strong>;</li>
+  <li>Σ = { B, N, S, L, O, E, #, |, g, a, v } (alfabeto de entrada);</li>
+  <li>Γ = { N, S, L, O, Z } (alfabeto da pilha; Z é o fundo);</li>
+  <li>configuração inicial: estado q0, posição de leitura 0, pilha = Z;</li>
+  <li>F = { q8 }. <strong>Aceitação por estado final</strong>: a cadeia é aceita se, depois de consumida por inteiro, o AP estiver em q8. Se em algum ponto não houver transição para (estado, símbolo, topo), ou se a entrada acabar fora de q8, a cadeia é rejeitada.</li>
+</ul>
+<table>
+  <tr><th>Estado</th><th>Papel</th></tr>
+  <tr><td>q0</td><td>espera a base B de partida</td></tr>
+  <tr><td>q1</td><td>espera o 1º movimento da ida (garante w não vazio)</td></tr>
+  <tr><td>q2</td><td>lê a ida: a cada movimento empilha o movimento oposto (a volta pendente); ao ler E passa para a volta</td></tr>
+  <tr><td>q3</td><td>lê a volta: cada movimento lido deve ser igual ao topo, que é desempilhado; ao ler B exige o topo Z</td></tr>
+  <tr><td>q4</td><td>espera o separador #</td></tr>
+  <tr><td>q5 / q6</td><td>1º evento / demais eventos do registro principal, até o separador |</td></tr>
+  <tr><td>q7 / q8</td><td>1º evento / demais eventos do registro reserva (q8 é final)</td></tr>
+</table>
+
+<h3>4.2 Transições</h3>
+<p>Notação δ(estado, símbolo lido, topo) = (novo estado, cadeia que substitui o topo), com o topo à esquerda e ε indicando desempilhar. Nas linhas abaixo, x, t ∈ {N,S,L,O} e e ∈ {g,a,v}. O total é de 44 transições, listadas uma a uma no Apêndice A.</p>
+<table>
+  <tr><th>Transição</th><th>Qtd.</th><th>Operação na pilha</th><th>Significado</th></tr>
+  <tr><td>δ(q0, B, Z) = (q1, Z)</td><td>1</td><td>mantém</td><td>parte da base</td></tr>
+  <tr><td>δ(q1, x, Z) = (q2, opp(x)Z)</td><td>4</td><td>empilha opp(x)</td><td>1º movimento da ida; a volta pendente vai para a pilha</td></tr>
+  <tr><td>δ(q2, x, t) = (q2, opp(x)t)</td><td>16</td><td>empilha opp(x)</td><td>demais movimentos da ida</td></tr>
+  <tr><td>δ(q2, E, t) = (q3, t)</td><td>4</td><td>mantém</td><td>ponto de entrega: começa a volta</td></tr>
+  <tr><td>δ(q3, x, x) = (q3, ε)</td><td>4</td><td>desempilha</td><td>o movimento de volta lido é o que a pilha pede</td></tr>
+  <tr><td>δ(q3, B, Z) = (q4, Z)</td><td>1</td><td>mantém</td><td>chegou à base sem volta pendente</td></tr>
+  <tr><td>δ(q4, #, Z) = (q5, Z)</td><td>1</td><td>mantém</td><td>separador dos registros</td></tr>
+  <tr><td>δ(q5, e, Z) = (q6, Z) &nbsp; δ(q6, e, Z) = (q6, Z)</td><td>3 + 3</td><td>mantém</td><td>registro principal não vazio</td></tr>
+  <tr><td>δ(q6, |, Z) = (q7, Z)</td><td>1</td><td>mantém</td><td>separador das caixas-pretas</td></tr>
+  <tr><td>δ(q7, e, Z) = (q8, Z) &nbsp; δ(q8, e, Z) = (q8, Z)</td><td>3 + 3</td><td>mantém</td><td>registro reserva não vazio</td></tr>
+</table>
+<figure><img src="img/diagrama_ap.svg" alt="Diagrama de estados do AP"><figcaption>Figura 1: diagrama de estados do AP (q8 é o estado final).</figcaption></figure>
+
+<h3>4.3 Determinismo e critério de aceitação</h3>
+<p>Para cada trio (estado, símbolo, topo) há no máximo uma transição, e não há transições ε. Logo M<sub>AP</sub> é um <strong>AP determinístico</strong>. Como toda transição consome exatamente um símbolo, a computação para em no máximo n passos para uma entrada de tamanho n. A decisão sai da configuração final: aceita se a entrada foi consumida por inteiro e o estado é q8; caso contrário, rejeita.</p>
+
+<h3>4.4 Por que o AP reconhece a linguagem gerada pela GLC</h3>
+<p><strong>Lema 1 (gramática).</strong> R ⇒* u, com u terminal, se e somente se u = w E inv(w) para algum w ∈ {N,S,L,O}<sup>+</sup>. A prova é por indução em |w|. A base é R → x E opp(x), que dá w = x. No passo, R → x R opp(x) ⇒* x w′ E inv(w′) opp(x) = (xw′) E inv(xw′), porque inv(xw′) = inv(w′) opp(x). Como G gera exatamente as cadeias não vazias sobre {g,a,v}, temos L(G) = L<sub>AP</sub>.</p>
+<p><strong>Lema 2 (pilha da ida).</strong> Depois de ler B w (w ≠ ε), o AP está em q2 com a pilha inv(w)Z, com o topo à esquerda. A prova também é por indução. q1 lendo x deixa opp(x)Z = inv(x)Z. Em q2, ler x sobre a pilha inv(w)Z deixa opp(x)inv(w)Z = inv(wx)Z.</p>
+<p><strong>Lema 3 (pilha da volta).</strong> Em q3, o AP só avança quando o símbolo lido é igual ao topo, que é então desempilhado. Só aceita B com Z no topo. Portanto, a partir de (q3, inv(w)Z), o AP chega a q4 lendo u B se e somente se u = inv(w). Por fim, q4 a q8 formam um autômato finito para <code>#[gav]+|[gav]+</code>, com a pilha fixa em Z.</p>
+<p>Juntando os três lemas, L(M<sub>AP</sub>) = L<sub>AP</sub> = L(G). A correspondência com a gramática é direta. Depois de k expansões R → x R opp(x), a forma sentencial é <code>B w R inv(w) B # G | G</code>. O sufixo inv(w), "prometido" à direita de R, é <strong>exatamente o conteúdo da pilha</strong> na configuração (q2, …, inv(w)Z). A produção R → x E opp(x) corresponde a ler o último movimento e o E. Daí em diante, cada símbolo da volta cumpre uma promessa, ou seja, desempilha. Em resumo: <em>a pilha guarda o caminho de volta que ainda falta voar</em>.</p>
+
+<h3>4.5 Rastreamento</h3>
+<p>Saída de <code>python3 main.py --modulo ap "BNLLNESOOSB#gvag|aggv"</code>. A posição de leitura é o índice do próximo símbolo, e a pilha é mostrada com o topo à esquerda.</p>
+<table>
+  <tr><th>Passo</th><th>Estado</th><th>Pos.</th><th>Entrada restante</th><th>Pilha</th><th>Transição aplicada</th></tr>
+<tr><td>0</td><td>q0</td><td>0</td><td class='mono'>BNLLNESOOSB#gvag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q0, B, Z) = (q1, Z)</td></tr>
+<tr><td>1</td><td>q1</td><td>1</td><td class='mono'>NLLNESOOSB#gvag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q1, N, Z) = (q2, SZ)</td></tr>
+<tr><td>2</td><td>q2</td><td>2</td><td class='mono'>LLNESOOSB#gvag|aggv</td><td class='mono'>SZ</td><td class='mono'>δ(q2, L, S) = (q2, OS)</td></tr>
+<tr><td>3</td><td>q2</td><td>3</td><td class='mono'>LNESOOSB#gvag|aggv</td><td class='mono'>OSZ</td><td class='mono'>δ(q2, L, O) = (q2, OO)</td></tr>
+<tr><td>4</td><td>q2</td><td>4</td><td class='mono'>NESOOSB#gvag|aggv</td><td class='mono'>OOSZ</td><td class='mono'>δ(q2, N, O) = (q2, SO)</td></tr>
+<tr><td>5</td><td>q2</td><td>5</td><td class='mono'>ESOOSB#gvag|aggv</td><td class='mono'>SOOSZ</td><td class='mono'>δ(q2, E, S) = (q3, S)</td></tr>
+<tr><td>6</td><td>q3</td><td>6</td><td class='mono'>SOOSB#gvag|aggv</td><td class='mono'>SOOSZ</td><td class='mono'>δ(q3, S, S) = (q3, ε)</td></tr>
+<tr><td>7</td><td>q3</td><td>7</td><td class='mono'>OOSB#gvag|aggv</td><td class='mono'>OOSZ</td><td class='mono'>δ(q3, O, O) = (q3, ε)</td></tr>
+<tr><td>8</td><td>q3</td><td>8</td><td class='mono'>OSB#gvag|aggv</td><td class='mono'>OSZ</td><td class='mono'>δ(q3, O, O) = (q3, ε)</td></tr>
+<tr><td>9</td><td>q3</td><td>9</td><td class='mono'>SB#gvag|aggv</td><td class='mono'>SZ</td><td class='mono'>δ(q3, S, S) = (q3, ε)</td></tr>
+<tr><td>10</td><td>q3</td><td>10</td><td class='mono'>B#gvag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q3, B, Z) = (q4, Z)</td></tr>
+<tr><td>11</td><td>q4</td><td>11</td><td class='mono'>#gvag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q4, #, Z) = (q5, Z)</td></tr>
+<tr><td>12</td><td>q5</td><td>12</td><td class='mono'>gvag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q5, g, Z) = (q6, Z)</td></tr>
+<tr><td>13</td><td>q6</td><td>13</td><td class='mono'>vag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q6, v, Z) = (q6, Z)</td></tr>
+<tr><td>14</td><td>q6</td><td>14</td><td class='mono'>ag|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q6, a, Z) = (q6, Z)</td></tr>
+<tr><td>15</td><td>q6</td><td>15</td><td class='mono'>g|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q6, g, Z) = (q6, Z)</td></tr>
+<tr><td>16</td><td>q6</td><td>16</td><td class='mono'>|aggv</td><td class='mono'>Z</td><td class='mono'>δ(q6, |, Z) = (q7, Z)</td></tr>
+<tr><td>17</td><td>q7</td><td>17</td><td class='mono'>aggv</td><td class='mono'>Z</td><td class='mono'>δ(q7, a, Z) = (q8, Z)</td></tr>
+<tr><td>18</td><td>q8</td><td>18</td><td class='mono'>ggv</td><td class='mono'>Z</td><td class='mono'>δ(q8, g, Z) = (q8, Z)</td></tr>
+<tr><td>19</td><td>q8</td><td>19</td><td class='mono'>gv</td><td class='mono'>Z</td><td class='mono'>δ(q8, g, Z) = (q8, Z)</td></tr>
+<tr><td>20</td><td>q8</td><td>20</td><td class='mono'>v</td><td class='mono'>Z</td><td class='mono'>δ(q8, v, Z) = (q8, Z)</td></tr>
+<tr><td>21</td><td>q8</td><td>21</td><td class='mono'>ε</td><td class='mono'>Z</td><td class='mono'></td></tr>
+<tr><td colspan='6'><strong>aceita: entrada consumida no estado final q8</strong></td></tr>
+</table>
+<p>Rejeição no cenário <code>BNLLNESOONB#gvag|aggv</code> (últimos passos): na posição 9 a pilha pede <code>S</code> (o oposto do primeiro N da ida), mas a entrada traz <code>N</code>.</p>
+<table>
+  <tr><th>Passo</th><th>Estado</th><th>Pos.</th><th>Entrada restante</th><th>Pilha</th><th>Transição aplicada</th></tr>
+<tr><td>4</td><td>q2</td><td>4</td><td class='mono'>NESOONB#gvag|aggv</td><td class='mono'>OOSZ</td><td class='mono'>δ(q2, N, O) = (q2, SO)</td></tr>
+<tr><td>5</td><td>q2</td><td>5</td><td class='mono'>ESOONB#gvag|aggv</td><td class='mono'>SOOSZ</td><td class='mono'>δ(q2, E, S) = (q3, S)</td></tr>
+<tr><td>6</td><td>q3</td><td>6</td><td class='mono'>SOONB#gvag|aggv</td><td class='mono'>SOOSZ</td><td class='mono'>δ(q3, S, S) = (q3, ε)</td></tr>
+<tr><td>7</td><td>q3</td><td>7</td><td class='mono'>OONB#gvag|aggv</td><td class='mono'>OOSZ</td><td class='mono'>δ(q3, O, O) = (q3, ε)</td></tr>
+<tr><td>8</td><td>q3</td><td>8</td><td class='mono'>ONB#gvag|aggv</td><td class='mono'>OSZ</td><td class='mono'>δ(q3, O, O) = (q3, ε)</td></tr>
+<tr><td>9</td><td>q3</td><td>9</td><td class='mono'>NB#gvag|aggv</td><td class='mono'>SZ</td><td class='mono'>sem transição</td></tr>
+<tr><td colspan='6'><strong>rejeita: não há δ(q3, N, S); q3 = lendo a volta (desempilha) ou a base B de chegada</strong></td></tr>
+</table>
+
+<h2>5. Etapa 2: a linguagem sensível ao contexto</h2>
+<h3>5.1 Alfabeto e regra de aceitação</h3>
+<p>Σ<sub>ALL</sub> = { g, a, v, | }. Indicando por |u|<sub>c</sub> o número de ocorrências de c em u:</p>
+<div class="caixa">L<sub>ALL</sub> = { x | y &nbsp;:&nbsp; x, y ∈ {g,a,v}*, &nbsp;|x|<sub>c</sub> = |y|<sub>c</sub> para todo c ∈ {g,a,v} }</div>
+<p>Ou seja, há exatamente um separador e o registro reserva é uma permutação do principal. A exigência de registros não vazios fica com o AP (estrutura). O ALL verifica só a dependência entre os conteúdos. A menor cadeia de L<sub>ALL</sub> é <code>|</code>.</p>
+
+<h3>5.2 Classificação: L<sub>ALL</sub> é sensível ao contexto e não é livre de contexto</h3>
+<p><strong>Não é livre de contexto.</strong> Usamos o lema do bombeamento para LLC e o fechamento das LLC sob interseção com linguagens regulares (Sipser, seção 2.3; Hopcroft, Motwani e Ullman). Se L<sub>ALL</sub> fosse livre de contexto, também seria L′ = L<sub>ALL</sub> ∩ g*a*|g*a* = { g<sup>i</sup>a<sup>j</sup> | g<sup>i</sup>a<sup>j</sup> : i, j ≥ 0 }. Seja p a constante do lema e s = g<sup>p</sup>a<sup>p</sup>|g<sup>p</sup>a<sup>p</sup>. Considere qualquer divisão s = uvxyz com |vxy| ≤ p e |vy| ≥ 1.</p>
+<ul>
+  <li><strong>v ou y contém o separador |.</strong> Então uxz não tem separador e está fora de L′.</li>
+  <li><strong>v ou y mistura letras</strong> (por exemplo, "ga"). Então uv²xy²z sai do formato g*a*|g*a*.</li>
+  <li><strong>v e y são cada um de uma letra só.</strong> Como |vxy| ≤ p, a janela não alcança os dois blocos de mesma letra: os dois blocos de g estão separados por a<sup>p</sup>| e os dois de a por |g<sup>p</sup>. Ao bombear, alguma contagem aumenta de um lado do | e não do outro. Isso vale também quando v está no bloco a<sup>p</sup> da esquerda e y no bloco g<sup>p</sup> da direita.</li>
+</ul>
+<p>Em todos os casos uv²xy²z ∉ L′ (ou uxz ∉ L′), o que contradiz o lema. A dependência é <strong>cruzada</strong>: as contagens de g se correspondem através das contagens de a. Uma pilha só consegue emparelhar dependências aninhadas, como no AP da etapa 1.</p>
+<p><strong>É sensível ao contexto.</strong> L<sub>ALL</sub> é reconhecida pelo autômato linearmente limitado da seção 6. Pelo teorema de Kuroda (1964), as linguagens aceitas por ALL são exatamente as sensíveis ao contexto (tipo 1 na hierarquia de Chomsky).</p>
+
+<h2>6. O autômato linearmente limitado</h2>
+<h3>6.1 Definição formal</h3>
+<p>M<sub>ALL</sub> = (Q, Σ, Γ, δ, q<sub>0</sub>, &lt;, &gt;, q<sub>ac</sub>, q<sub>rej</sub>), com:</p>
+<ul>
+  <li>Q = { q0, q1, cg, ca, cv, bg, ba, bv, qr, qv, qac, qrej }: <strong>12 estados</strong>;</li>
+  <li>Σ = { g, a, v, | } (alfabeto de entrada);</li>
+  <li>Γ = Σ ∪ { X, &lt;, &gt; } (alfabeto da fita; X marca um evento já emparelhado; &lt; e &gt; são os marcadores de borda);</li>
+  <li>δ : (Q ∖ {qac, qrej}) × Γ → Q × Γ × {E, D, P}, parcial (E = esquerda, D = direita, P = parado, usado só ao aceitar);</li>
+  <li>configuração inicial: estado q0, fita <code>&lt; w &gt;</code>, cabeçote na célula 0 (sobre o &lt;).</li>
+</ul>
+<table>
+  <tr><th>Estado</th><th>Papel</th></tr>
+  <tr><td>q0</td><td>início: sai do marcador &lt;</td></tr>
+  <tr><td>q1</td><td>procura o próximo evento não marcado do registro principal (pula os X)</td></tr>
+  <tr><td>cg, ca, cv</td><td>"carregando" o evento g, a ou v: o símbolo fica guardado no próprio estado (memória finita) enquanto o cabeçote atravessa o principal até o |</td></tr>
+  <tr><td>bg, ba, bv</td><td>buscando no reserva o primeiro g, a ou v ainda não marcado (pula os X e os outros eventos)</td></tr>
+  <tr><td>qr</td><td>retorna ao marcador &lt;</td></tr>
+  <tr><td>qv</td><td>o principal acabou: confere se o reserva está todo marcado</td></tr>
+  <tr><td>qac / qrej</td><td>estados de parada: aceitação e rejeição</td></tr>
+</table>
+
+<h3>6.2 Fita e limites</h3>
+<p>Para uma entrada de n símbolos, a fita tem n + 2 células. A célula 0 contém &lt;, as células 1 a n contêm a entrada (as únicas graváveis) e a célula n+1 contém &gt;. A memória de trabalho cabe nessas n células: o algoritmo só troca eventos por X, e o evento "em trânsito" fica no estado (cg/ca/cv, bg/ba/bv), não em células extras. Os marcadores são lidos mas nunca sobrescritos. Sobre o &lt; as únicas transições movem para a direita: (q0, &lt;) e (qr, &lt;). Sobre o &gt; a única transição é a de aceitação (qv, &gt;), que não move o cabeçote; qualquer outra leitura de &gt; leva à rejeição. O simulador verifica essas duas regras a cada passo e interrompe com erro se uma transição tentar sobrescrever um marcador ou sair da fita.</p>
+
+<h3>6.3 Transições</h3>
+<p>Nas linhas abaixo, e, s ∈ {g,a,v}. O total é de 38 transições, listadas uma a uma no Apêndice B.</p>
+<table>
+  <tr><th>Transição</th><th>Qtd.</th><th>Significado</th></tr>
+  <tr><td>δ(q0, &lt;) = (q1, &lt;, D)</td><td>1</td><td>começa no primeiro símbolo da entrada</td></tr>
+  <tr><td>δ(q1, X) = (q1, X, D)</td><td>1</td><td>pula eventos do principal já emparelhados</td></tr>
+  <tr><td>δ(q1, e) = (c<sub>e</sub>, X, D)</td><td>3</td><td>marca o evento do principal e guarda e no estado</td></tr>
+  <tr><td>δ(q1, |) = (qv, |, D)</td><td>1</td><td>principal todo marcado: vai conferir o reserva</td></tr>
+  <tr><td>δ(c<sub>e</sub>, s) = (c<sub>e</sub>, s, D)</td><td>9</td><td>atravessa o restante do principal</td></tr>
+  <tr><td>δ(c<sub>e</sub>, |) = (b<sub>e</sub>, |, D)</td><td>3</td><td>entra no registro reserva</td></tr>
+  <tr><td>δ(b<sub>e</sub>, X) = (b<sub>e</sub>, X, D)</td><td>3</td><td>pula eventos do reserva já emparelhados</td></tr>
+  <tr><td>δ(b<sub>e</sub>, s) = (b<sub>e</sub>, s, D), s ≠ e</td><td>6</td><td>pula eventos diferentes (a ordem pode variar)</td></tr>
+  <tr><td>δ(b<sub>e</sub>, e) = (qr, X, E)</td><td>3</td><td>achou o par: marca e volta</td></tr>
+  <tr><td>δ(qr, s) = (qr, s, E), s ∈ {g,a,v,|,X}</td><td>5</td><td>volta pela fita</td></tr>
+  <tr><td>δ(qr, &lt;) = (q1, &lt;, D)</td><td>1</td><td>recomeça o ciclo</td></tr>
+  <tr><td>δ(qv, X) = (qv, X, D)</td><td>1</td><td>confere o reserva</td></tr>
+  <tr><td>δ(qv, &gt;) = (qac, &gt;, P)</td><td>1</td><td><strong>aceita</strong>: nada sobrou no reserva</td></tr>
+</table>
+<figure><img src="img/diagrama_all.svg" alt="Diagrama de estados do ALL"><figcaption>Figura 2: diagrama de estados do ALL (qac aceita; os pares sem transição levam a qrej).</figcaption></figure>
+
+<h3>6.4 Condições de aceitação e rejeição</h3>
+<p><strong>Aceita</strong> somente ao chegar a qac, isto é, em qv lendo &gt;. Isso acontece quando todo evento do principal foi emparelhado com um evento igual do reserva e não sobrou evento sem marca no reserva. <strong>Rejeita</strong> (vai para qrej) sempre que não há transição definida para o par (estado, símbolo lido):</p>
+<ul>
+  <li>(q1, &gt;) ou (c<sub>e</sub>, &gt;): não há separador |;</li>
+  <li>(b<sub>e</sub>, &gt;): o reserva não tem um e livre para emparelhar (evento perdido ou trocado);</li>
+  <li>(b<sub>e</sub>, |) ou (qv, |): há um segundo separador;</li>
+  <li>(qv, e): sobrou evento no reserva (evento a mais).</li>
+</ul>
+
+<h3>6.5 Rastreamento</h3>
+<p>Saída de <code>python3 main.py --modulo all "gvag|aggv"</code>. A célula sob o cabeçote aparece destacada e a posição 0 é o marcador &lt;. A tabela mostra o primeiro ciclo completo (o g do principal é emparelhado com o primeiro g do reserva) e o final da execução.</p>
+<table>
+  <tr><th>Passo</th><th>Estado</th><th>Cab.</th><th>Fita</th><th>Transição aplicada</th></tr>
+<tr><td>0</td><td>q0</td><td>0</td><td class='fita'><b class='cab'>&lt;</b><span>g</span><span>v</span><span>a</span><span>g</span><span>|</span><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(q0, &lt;) = (q1, &lt;, D)</td></tr>
+<tr><td>1</td><td>q1</td><td>1</td><td class='fita'><span>&lt;</span><b class='cab'>g</b><span>v</span><span>a</span><span>g</span><span>|</span><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(q1, g) = (cg, X, D)</td></tr>
+<tr><td>2</td><td>cg</td><td>2</td><td class='fita'><span>&lt;</span><span>X</span><b class='cab'>v</b><span>a</span><span>g</span><span>|</span><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(cg, v) = (cg, v, D)</td></tr>
+<tr><td>3</td><td>cg</td><td>3</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><b class='cab'>a</b><span>g</span><span>|</span><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(cg, a) = (cg, a, D)</td></tr>
+<tr><td>4</td><td>cg</td><td>4</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><b class='cab'>g</b><span>|</span><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(cg, g) = (cg, g, D)</td></tr>
+<tr><td>5</td><td>cg</td><td>5</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><span>g</span><b class='cab'>|</b><span>a</span><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(cg, |) = (bg, |, D)</td></tr>
+<tr><td>6</td><td>bg</td><td>6</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><span>g</span><span>|</span><b class='cab'>a</b><span>g</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(bg, a) = (bg, a, D)</td></tr>
+<tr><td>7</td><td>bg</td><td>7</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><span>g</span><span>|</span><span>a</span><b class='cab'>g</b><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(bg, g) = (qr, X, E)</td></tr>
+<tr><td>8</td><td>qr</td><td>6</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><span>g</span><span>|</span><b class='cab'>a</b><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, a) = (qr, a, E)</td></tr>
+<tr><td>9</td><td>qr</td><td>5</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><span>g</span><b class='cab'>|</b><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, |) = (qr, |, E)</td></tr>
+<tr><td>10</td><td>qr</td><td>4</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><span>a</span><b class='cab'>g</b><span>|</span><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, g) = (qr, g, E)</td></tr>
+<tr><td>11</td><td>qr</td><td>3</td><td class='fita'><span>&lt;</span><span>X</span><span>v</span><b class='cab'>a</b><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, a) = (qr, a, E)</td></tr>
+<tr><td>12</td><td>qr</td><td>2</td><td class='fita'><span>&lt;</span><span>X</span><b class='cab'>v</b><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, v) = (qr, v, E)</td></tr>
+<tr><td>13</td><td>qr</td><td>1</td><td class='fita'><span>&lt;</span><b class='cab'>X</b><span>v</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, X) = (qr, X, E)</td></tr>
+<tr><td>14</td><td>qr</td><td>0</td><td class='fita'><b class='cab'>&lt;</b><span>X</span><span>v</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>v</span><span>&gt;</span></td><td class='mono'>δ(qr, &lt;) = (q1, &lt;, D)</td></tr>
+<tr><td colspan='5' class='gap'>⋮</td></tr>
+<tr><td>64</td><td>q1</td><td>4</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><b class='cab'>X</b><span>|</span><span>X</span><span>X</span><span>X</span><span>X</span><span>&gt;</span></td><td class='mono'>δ(q1, X) = (q1, X, D)</td></tr>
+<tr><td>65</td><td>q1</td><td>5</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><b class='cab'>|</b><span>X</span><span>X</span><span>X</span><span>X</span><span>&gt;</span></td><td class='mono'>δ(q1, |) = (qv, |, D)</td></tr>
+<tr><td>66</td><td>qv</td><td>6</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><b class='cab'>X</b><span>X</span><span>X</span><span>X</span><span>&gt;</span></td><td class='mono'>δ(qv, X) = (qv, X, D)</td></tr>
+<tr><td>67</td><td>qv</td><td>7</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><span>X</span><b class='cab'>X</b><span>X</span><span>X</span><span>&gt;</span></td><td class='mono'>δ(qv, X) = (qv, X, D)</td></tr>
+<tr><td>68</td><td>qv</td><td>8</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><span>X</span><span>X</span><b class='cab'>X</b><span>X</span><span>&gt;</span></td><td class='mono'>δ(qv, X) = (qv, X, D)</td></tr>
+<tr><td>69</td><td>qv</td><td>9</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><span>X</span><span>X</span><span>X</span><b class='cab'>X</b><span>&gt;</span></td><td class='mono'>δ(qv, X) = (qv, X, D)</td></tr>
+<tr><td>70</td><td>qv</td><td>10</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><span>X</span><span>X</span><span>X</span><span>X</span><b class='cab'>&gt;</b></td><td class='mono'>δ(qv, &gt;) = (qac, &gt;, P)</td></tr>
+<tr><td>71</td><td>qac</td><td>10</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>X</span><span>X</span><span>|</span><span>X</span><span>X</span><span>X</span><span>X</span><b class='cab'>&gt;</b></td><td class='mono'></td></tr>
+<tr><td colspan='5'><strong>aceita: todo evento do principal tem um par no reserva e não sobrou evento</strong></td></tr>
+</table>
+<p>Rejeição no cenário <code>gvag|aggg</code> (trecho do fluxo <code>BNLLNESOOSB#gvag|aggg</code>, últimos passos). O ALL leva o <code>v</code> do principal até o reserva, que não tem nenhum <code>v</code>, e chega ao &gt; no estado bv.</p>
+<table>
+  <tr><th>Passo</th><th>Estado</th><th>Cab.</th><th>Fita</th><th>Transição aplicada</th></tr>
+<tr><td colspan='5' class='gap'>⋮</td></tr>
+<tr><td>20</td><td>bv</td><td>6</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><b class='cab'>a</b><span>X</span><span>g</span><span>g</span><span>&gt;</span></td><td class='mono'>δ(bv, a) = (bv, a, D)</td></tr>
+<tr><td>21</td><td>bv</td><td>7</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><span>a</span><b class='cab'>X</b><span>g</span><span>g</span><span>&gt;</span></td><td class='mono'>δ(bv, X) = (bv, X, D)</td></tr>
+<tr><td>22</td><td>bv</td><td>8</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><b class='cab'>g</b><span>g</span><span>&gt;</span></td><td class='mono'>δ(bv, g) = (bv, g, D)</td></tr>
+<tr><td>23</td><td>bv</td><td>9</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><b class='cab'>g</b><span>&gt;</span></td><td class='mono'>δ(bv, g) = (bv, g, D)</td></tr>
+<tr><td>24</td><td>bv</td><td>10</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>g</span><b class='cab'>&gt;</b></td><td class='mono'>sem transição → qrej</td></tr>
+<tr><td>25</td><td>qrej</td><td>10</td><td class='fita'><span>&lt;</span><span>X</span><span>X</span><span>a</span><span>g</span><span>|</span><span>a</span><span>X</span><span>g</span><span>g</span><b class='cab'>&gt;</b></td><td class='mono'></td></tr>
+<tr><td colspan='5'><strong>rejeita: não há δ(bv, &gt;); bv = procurando um &#x27;v&#x27; não marcado no registro reserva</strong></td></tr>
+</table>
+
+<h2>7. Implementação</h2>
+<h3>7.1 Linguagem e interface</h3>
+<p>A implementação usa <strong>Python 3</strong> sem dependências externas, só a biblioteca padrão, e roda em Linux, Windows e macOS. Há duas interfaces que usam os mesmos simuladores:</p>
+<ul>
+  <li><strong>Linha de comando</strong> (<code>main.py</code>): imprime o rastreamento completo de cada autômato e a decisão. Opções: <code>--modulo ap|all</code> para um só reconhecedor, <code>--demo</code> para os três cenários de integração e <code>--sem-rastro</code> para ver só a decisão.</li>
+  <li><strong>Painel interativo</strong> (<code>web/index.html</code>): abre com <code>visualizador.py</code> ou direto no navegador, sem instalar nada, e está publicado no GitHub Pages (https://andreyyrson.github.io/validador-drone-ap-all/web/), onde o professor pode usá-lo. O Python exporta as tabelas δ para <code>web/automatos.js</code>, e <code>web/simulador.js</code> executa essas mesmas tabelas no navegador, com o mesmo laço dos simuladores Python. O painel tem três modos:
+    <ul>
+      <li><em>pilotar</em>: o usuário conduz o drone por botões ou pelas setas do teclado, e o AP roda a cada comando. A pilha cresce e diminui ao vivo, a seta "pilha: S" mostra o movimento que o topo exige e um movimento inválido aparece na hora.</li>
+      <li><em>replay</em>: animação passo a passo da validação completa, com a fita do ALL marcada com X célula a célula e o evento em trânsito exibido como "memória do estado".</li>
+      <li><em>desafio</em>: o painel sorteia uma missão, quem está usando prevê a decisão e a animação confirma, com placar.</li>
+    </ul>
+    A equivalência com o Python é testada (seção 8.6).</li>
+</ul>
+<table>
+  <tr><th>Arquivo</th><th>Conteúdo</th></tr>
+  <tr><td><code>automato_pilha.py</code></td><td>alfabeto, tabela δ do AP (dicionário (estado, símbolo, topo) → (estado, substituição)) e simulador</td></tr>
+  <tr><td><code>automato_linear.py</code></td><td>alfabeto, tabela δ do ALL (dicionário (estado, símbolo) → (estado, escrita, movimento)) e simulador de fita limitada</td></tr>
+  <tr><td><code>main.py</code></td><td>validação do alfabeto, fluxo das duas etapas e interface de linha de comando</td></tr>
+  <tr><td><code>visualizador.py</code>, <code>web/</code></td><td>painel interativo: <code>index.html</code> (interface), <code>simulador.js</code> (simuladores em JS) e <code>automatos.js</code> (tabelas δ exportadas do Python por <code>visualizador.py</code>)</td></tr>
+  <tr><td><code>compilador.py</code></td><td>visão de compilador: análise léxica, sintática (AP, com árvore de derivação), semântica (ALL) e geração de código</td></tr>
+  <tr><td><code>testes.py</code>, <code>casos_teste.csv</code></td><td>casos de teste, executor e comparação com oráculo; gera <code>resultados_testes.md</code></td></tr>
+</table>
+<figure><img src="img/visualizador.png" alt="Visualizador web" style="max-width:92%"><figcaption>Figura 3: painel no modo pilotar, durante a volta (estado q3). A pilha guarda <code>O S</code>, exatamente o trecho que falta voar, e a seta verde mostra o movimento que o topo exige.</figcaption></figure>
+
+<h3>7.2 A decisão resulta da execução das transições</h3>
+<p>Os simuladores não usam expressões regulares nem contagens para decidir. A cada passo, consultam a tabela δ com a configuração atual e aplicam a transição encontrada: substituem o topo da pilha no AP, ou escrevem, movem o cabeçote e trocam de estado no ALL. A decisão sai da configuração final: no AP, o estado em que a entrada termina ou a falta de transição; no ALL, a chegada a qac ou a qrej. O rastreamento é a sequência dessas configurações. A expressão regular e a contagem aparecem só em <code>testes.py</code>, como <em>oráculo independente</em> para conferir os simuladores.</p>
+
+<h3>7.3 Terminação</h3>
+<p><strong>AP:</strong> não há transições ε e toda transição consome um símbolo, então a execução termina em no máximo n passos.</p>
+<p><strong>ALL:</strong> cada ciclo q1 → c<sub>e</sub> → b<sub>e</sub> → qr → q1 marca com X um evento do principal e um do reserva. Como X nunca volta a ser evento, há no máximo n ciclos. Dentro de um ciclo, cada fase move o cabeçote numa só direção e para num marcador ou num separador: q1, c<sub>e</sub> e b<sub>e</sub> só vão para a direita, e qr só vai para a esquerda. Assim, cada ciclo leva no máximo 2(n+2) passos. A conferência final em qv leva no máximo n+2 passos. O total é T(n) ≤ 2n(n+2) + n + 2 = O(n²), para qualquer entrada sobre Σ<sub>ALL</sub>. A seção 9 compara esse limite com os valores medidos.</p>
+
+<h3>7.4 Não determinismo</h3>
+<p>Os dois autômatos são <strong>determinísticos</strong>: em cada configuração há no máximo uma transição aplicável e o AP não tem transições ε. Por isso o simulador não precisa explorar alternativas nem fazer backtracking. A ausência de transição é a própria rejeição, registrada no rastreamento com o motivo (estado, símbolo lido e, no AP, o topo).</p>
+
+<h3>7.5 Símbolo fora do alfabeto</h3>
+<p>Antes de simular, o programa confere cada símbolo contra o alfabeto de entrada do módulo. Um símbolo estranho não é tratado como rejeição: o autômato não está definido para ele. O programa exibe uma mensagem de erro com a posição e o símbolo e encerra com código de saída 2 (ver seção 8.5).</p>
+
+<h3>7.6 Visão de compilador</h3>
+<p>O validador tem a mesma arquitetura do front-end de um compilador, e cada fase usa um nível da hierarquia de Chomsky. O módulo <code>compilador.py</code> e a seção correspondente do painel tornam isso explícito para a "linguagem de plano de voo":</p>
+<table>
+  <tr><th>Fase</th><th>Neste projeto</th><th>Classe</th><th>Erro reportado</th></tr>
+  <tr><td>1. Análise léxica</td><td>cada símbolo vira um token: BASE, MOVE(N), ENTREGA, FIM_VOO, EVENTO(gps), SEP…</td><td>regular (Σ*)</td><td>erro léxico: símbolo fora do alfabeto</td></tr>
+  <tr><td>2. Análise sintática</td><td>o AP aceita a estrutura e a árvore de derivação da GLC é montada; as folhas, lidas da esquerda para a direita, formam a própria cadeia</td><td>livre de contexto</td><td>erro sintático: o AP fica sem transição</td></tr>
+  <tr><td>3. Análise semântica</td><td>o ALL confere se as caixas-pretas têm os mesmos eventos</td><td>sensível ao contexto</td><td>erro semântico: o ALL rejeita</td></tr>
+  <tr><td>4. Geração de código</td><td>traduz a missão em instruções do drone (DECOLA, MOVE, ENTREGA, POUSA, AUDITA) e aplica uma otimização peephole: MOVEs iguais e consecutivos viram uma instrução com repetição</td><td>—</td><td>—</td></tr>
+</table>
+<p>Essa divisão não é arbitrária. Aho et al. (seção 4.3.5) mostram que restrições comuns de linguagens de programação não são livres de contexto. "Declarar antes de usar" é abstraído por {wcw}, e "o número de parâmetros formais é igual ao de argumentos" por {a<sup>n</sup>b<sup>m</sup>c<sup>n</sup>d<sup>m</sup>}. Por isso os compiladores usam uma GLC no analisador sintático e deixam essas restrições para a análise semântica. É o papel do ALL aqui: a permutação entre as caixas-pretas, como a contagem de parâmetros, é uma dependência cruzada que nenhuma GLC captura. Na árvore de derivação (Figura 4), cada nó R corresponde a um empilhamento do AP na ida e ao desempilhamento correspondente na volta. Por isso os pares N…S e L…O aparecem no mesmo nível.</p>
+<pre>$ python3 compilador.py "BNLLNESOOSB#gvag|aggv"      (trecho: código gerado, 12 → 10 instruções)
+00  DECOLA
+01  MOVE N
+02  MOVE L, 2
+03  MOVE N
+04  ENTREGA
+05  MOVE S
+06  MOVE O, 2
+07  MOVE S
+08  POUSA
+09  AUDITA gps:2 bateria:1 vento:1</pre>
+<figure><img src="img/compilador.png" alt="Visão de compilador no painel" style="max-width:100%"><figcaption>Figura 4: visão de compilador no painel. Mostra os tokens, a análise sintática e a semântica bem-sucedidas, o código gerado e a árvore de derivação com os pares aninhados.</figcaption></figure>
+
+<h2>8. Testes</h2>
+<h3>8.1 Metodologia</h3>
+<p>Os casos estão em <code>casos_teste.csv</code> (módulo, entrada, decisão esperada, regra verificada). O comando <code>python3 testes.py</code> executa todos, compara a decisão obtida com a esperada, imprime a tabela e grava <code>resultados_testes.md</code>. Todas as cadeias são distintas e formadas com o alfabeto do módulo. Exceto os casos-limite, todas têm ao menos 18 símbolos. Cada módulo tem casos-limite: a entrada vazia e a menor cadeia aceita.</p>
+
+<h3>8.2 Autômato de pilha (9 aceitas, 11 rejeitadas)</h3>
+<table>
+  <tr><th>#</th><th>Entrada</th><th>Tam.</th><th>Esperado</th><th>Obtido</th><th>Regra verificada</th></tr>
+<tr><td>1</td><td class='mono'><code>BNLLNESOOSB#gvag|aggv</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>ida NLLN desfeita por SOOS: cada movimento é desfeito pelo oposto, do último para o primeiro (LIFO)</td></tr>
+<tr><td>2</td><td class='mono'><code>BNLLNESOOSB#gvag|aggg</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>o AP confere só a estrutura; o conteúdo dos registros é verificado pelo ALL</td></tr>
+<tr><td>3</td><td class='mono'><code>BNESB#gavgavgav|vagvag</code></td><td>22</td><td>ACEITA</td><td>ACEITA ✔</td><td>rota de um movimento; registros de tamanhos diferentes não violam a estrutura</td></tr>
+<tr><td>4</td><td class='mono'><code>BOOOELLLB#ggggg|ggggg</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>três O na ida exigem três L na volta</td></tr>
+<tr><td>5</td><td class='mono'><code>BSLNOELSONB#aav|ava</code></td><td>19</td><td>ACEITA</td><td>ACEITA ✔</td><td>ida SLNO exige volta LSON (inverso de cada movimento, em ordem inversa)</td></tr>
+<tr><td>6</td><td class='mono'><code>BNNNNNNESSSSSSB#g|g</code></td><td>19</td><td>ACEITA</td><td>ACEITA ✔</td><td>N^6 na ida casa com S^6 na volta: a pilha conta os movimentos pendentes</td></tr>
+<tr><td>7</td><td class='mono'><code>BLOLOELOLOB#vvav|vav</code></td><td>20</td><td>ACEITA</td><td>ACEITA ✔</td><td>ida LOLO exige volta LOLO (inverter e trocar pelos opostos)</td></tr>
+<tr><td>8</td><td class='mono'><code>BSSLEONNB#aaaa|aaaa</code></td><td>19</td><td>ACEITA</td><td>ACEITA ✔</td><td>ida SSL exige volta ONN</td></tr>
+<tr><td>9</td><td class='mono'><code>BNESB#g|g</code></td><td>9</td><td>ACEITA</td><td>ACEITA ✔</td><td>caso-limite: menor cadeia aceita (9 símbolos: 1 movimento e 1 evento por registro)</td></tr>
+<tr><td>10</td><td class='mono'><code>BNLLNESOONB#gvag|aggv</code></td><td>21</td><td>REJEITA</td><td>REJEITA ✔</td><td>último movimento da volta (N) não desfaz o primeiro da ida (N exige S)</td></tr>
+<tr><td>11</td><td class='mono'><code>BNLESOB#gvaga|gvaga</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>volta na mesma ordem da ida (FIFO): a pilha exige desfazer L antes de N</td></tr>
+<tr><td>12</td><td class='mono'><code>BNLLNESOOB#gvag|gvag</code></td><td>20</td><td>REJEITA</td><td>REJEITA ✔</td><td>volta curta: chega à base com S ainda na pilha</td></tr>
+<tr><td>13</td><td class='mono'><code>BNLLNESOOSSB#gvag|gvag</code></td><td>22</td><td>REJEITA</td><td>REJEITA ✔</td><td>volta longa: movimento extra quando a pilha só tem Z</td></tr>
+<tr><td>14</td><td class='mono'><code>NLLNESOOSB#gvag|gvag</code></td><td>20</td><td>REJEITA</td><td>REJEITA ✔</td><td>o voo não parte da base B</td></tr>
+<tr><td>15</td><td class='mono'><code>BEB#gvaggvag|gvaggvag</code></td><td>21</td><td>REJEITA</td><td>REJEITA ✔</td><td>rota vazia: a entrega não pode ser na própria base</td></tr>
+<tr><td>16</td><td class='mono'><code>BNLLNESOOSBgvag|gvag</code></td><td>20</td><td>REJEITA</td><td>REJEITA ✔</td><td>falta o separador # entre a rota e os registros</td></tr>
+<tr><td>17</td><td class='mono'><code>BNLLNESOOSB#gvaggva</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>falta o registro reserva (a entrada termina em q6, que não é final)</td></tr>
+<tr><td>18</td><td class='mono'><code>BNLLNESOOSB#gvaggv|</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>registro reserva vazio (a entrada termina em q7, que não é final)</td></tr>
+<tr><td>19</td><td class='mono'><code>BNLLNESOOSB#gvag|gvag|g</code></td><td>23</td><td>REJEITA</td><td>REJEITA ✔</td><td>um terceiro registro (segundo |) não é permitido</td></tr>
+<tr><td>20</td><td class='mono'><em>(vazia)</em></td><td>0</td><td>REJEITA</td><td>REJEITA ✔</td><td>caso-limite: entrada vazia termina em q0, que não é final</td></tr>
+</table>
+
+<h3>8.3 Autômato linearmente limitado (9 aceitas, 10 rejeitadas, 1 erro)</h3>
+<table>
+  <tr><th>#</th><th>Entrada</th><th>Tam.</th><th>Esperado</th><th>Obtido</th><th>Regra verificada</th></tr>
+<tr><td>1</td><td class='mono'><code>gavgavgav|vagvagvag</code></td><td>19</td><td>ACEITA</td><td>ACEITA ✔</td><td>3 g, 3 a e 3 v nos dois registros</td></tr>
+<tr><td>2</td><td class='mono'><code>ggggaaaavv|vvaaaagggg</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>mesmas quantidades em ordem invertida</td></tr>
+<tr><td>3</td><td class='mono'><code>gvagvagvag|gvagvagvag</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>cópia idêntica também é permutação</td></tr>
+<tr><td>4</td><td class='mono'><code>aaaaaaaaa|aaaaaaaaa</code></td><td>19</td><td>ACEITA</td><td>ACEITA ✔</td><td>um só tipo de evento, 9 de cada lado</td></tr>
+<tr><td>5</td><td class='mono'><code>gavvagvvag|gggaaavvvv</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>3 g, 3 a e 4 v nos dois registros, em ordens diferentes</td></tr>
+<tr><td>6</td><td class='mono'><code>vvvvvgvvvv|gvvvvvvvvv</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>o único g muda de posição</td></tr>
+<tr><td>7</td><td class='mono'><code>agagagagag|gagagagaga</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>5 a e 5 g nos dois registros</td></tr>
+<tr><td>8</td><td class='mono'><code>vgavgavgav|aaagggvvvv</code></td><td>21</td><td>ACEITA</td><td>ACEITA ✔</td><td>o reserva agrupa os eventos por tipo</td></tr>
+<tr><td>9</td><td class='mono'><code>|</code></td><td>1</td><td>ACEITA</td><td>ACEITA ✔</td><td>caso-limite: menor cadeia aceita (dois registros vazios)</td></tr>
+<tr><td>10</td><td class='mono'><code>gavgavgav|vagvagvav</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>o reserva trocou um g por um v</td></tr>
+<tr><td>11</td><td class='mono'><code>gavgavgav|vagvagva</code></td><td>18</td><td>REJEITA</td><td>REJEITA ✔</td><td>o reserva perdeu um g</td></tr>
+<tr><td>12</td><td class='mono'><code>gavgavgav|vagvagvagg</code></td><td>20</td><td>REJEITA</td><td>REJEITA ✔</td><td>o reserva tem um g a mais</td></tr>
+<tr><td>13</td><td class='mono'><code>gavgavgavvagvagvag</code></td><td>18</td><td>REJEITA</td><td>REJEITA ✔</td><td>sem o separador |</td></tr>
+<tr><td>14</td><td class='mono'><code>gavgav|gav|gavgavgav</code></td><td>20</td><td>REJEITA</td><td>REJEITA ✔</td><td>dois separadores |</td></tr>
+<tr><td>15</td><td class='mono'><code>aaaaaaaaa|aaaaaaaa</code></td><td>18</td><td>REJEITA</td><td>REJEITA ✔</td><td>o reserva tem um a a menos</td></tr>
+<tr><td>16</td><td class='mono'><code>vvvvvvvvv|ggggggggg</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>eventos totalmente diferentes</td></tr>
+<tr><td>17</td><td class='mono'><code>|gavgavgavgavgavgav</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>principal vazio e reserva com eventos</td></tr>
+<tr><td>18</td><td class='mono'><code>gavgavgavgavgavgav|</code></td><td>19</td><td>REJEITA</td><td>REJEITA ✔</td><td>principal com eventos e reserva vazio</td></tr>
+<tr><td>19</td><td class='mono'><em>(vazia)</em></td><td>0</td><td>REJEITA</td><td>REJEITA ✔</td><td>caso-limite: entrada vazia (não há separador)</td></tr>
+<tr><td>20</td><td class='mono'><code>gavgavgav|vagvagvaN</code></td><td>19</td><td>ERRO</td><td>ERRO ✔</td><td>N pertence ao alfabeto do AP, mas não ao do ALL</td></tr>
+</table>
+
+<h3>8.4 Fluxo completo (integração)</h3>
+<table>
+  <tr><th>#</th><th>Entrada</th><th>Esperado</th><th>AP</th><th>ALL</th><th>Obtido</th><th>Regra verificada</th><th>Mensagem do programa</th></tr>
+<tr><td>1</td><td class='mono'><code>BNLLNESOOSB#gvag|aggv</code></td><td>ACEITA</td><td>aceita</td><td>aceita</td><td>ACEITA ✔</td><td>AP aceita a rota; ALL confirma que o reserva é permutação do principal</td><td class='small'>aceita: todo evento do principal tem um par no reserva e não sobrou evento</td></tr>
+<tr><td>2</td><td class='mono'><code>BNLLNESOONB#gvag|aggv</code></td><td>REJEITA_AP</td><td>rejeita</td><td>—</td><td>REJEITA_AP ✔</td><td>a volta não desfaz a ida; o ALL não é executado</td><td class='small'>rejeita: não há δ(q3, N, S); q3 = lendo a volta (desempilha) ou a base B de chegada</td></tr>
+<tr><td>3</td><td class='mono'><code>BNLLNESOOSB#gvag|aggg</code></td><td>REJEITA_ALL</td><td>aceita</td><td>rejeita</td><td>REJEITA_ALL ✔</td><td>estrutura válida, mas o reserva registrou g no lugar de v</td><td class='small'>rejeita: não há δ(bv, &gt;); bv = procurando um &#x27;v&#x27; não marcado no registro reserva</td></tr>
+<tr><td>4</td><td class='mono'><code>BNLLNESOOSB#gvxg|aggv</code></td><td>ERRO</td><td>—</td><td>—</td><td>ERRO ✔</td><td>símbolo x fora do alfabeto de entrada</td><td class='small'>o 15º símbolo, &#x27;x&#x27;, não pertence ao alfabeto de entrada {B, N, S, L, O, E, #, |, g, a, v}</td></tr>
+</table>
+
+<h3>8.5 Símbolo fora do alfabeto: mensagens exibidas</h3>
+<pre>$ python3 main.py "BNLLNESOOSB#gvxg|aggv"
+ERRO: o 15º símbolo, &#x27;x&#x27;, não pertence ao alfabeto de entrada {B, N, S, L, O, E, #, |, g, a, v}
+
+$ python3 main.py --modulo all "gavgavgav|vagvagvaN"
+ERRO: o 19º símbolo, &#x27;N&#x27;, não pertence ao alfabeto de entrada {g, a, v, |}</pre>
+<p>O segundo caso mostra que o alfabeto é verificado por módulo: <code>N</code> pertence a Σ<sub>AP</sub>, mas não a Σ<sub>ALL</sub>.</p>
+
+<h3>8.6 Verificação cruzada com oráculo</h3>
+<p>Além dos 44 casos fixos, <code>testes.py</code> gera 3000 cadeias aleatórias para cada módulo. Metade é construída dentro da linguagem e metade tem um símbolo trocado, para produzir "quase acertos". O teste compara a decisão do simulador com um oráculo escrito de forma independente: uma expressão regular mais a inversão da rota para o AP, e a comparação das listas ordenadas para o ALL. Resultado: <strong>0 divergências em 6000 cadeias</strong>. Nessas mesmas cadeias, o teste confere que as folhas de cada árvore de derivação formam a própria cadeia.</p>
+<p><strong>Paridade do painel web.</strong> Se o Node estiver instalado, <code>testes.py</code> executa <code>web/simulador.js</code> sobre os 44 casos fixos e mais 2000 cadeias aleatórias. Para cada uma, compara com o Python a decisão, o motivo, o <em>rastreamento completo, passo a passo</em>, e a saída da visão de compilador (tokens, árvore e código gerado). Resultado: <strong>0 divergências em 2044 cadeias</strong>. O teste também confere que <code>web/automatos.js</code> corresponde às tabelas δ atuais do Python. Para validar a própria checagem, introduzimos de propósito um erro no simulador JS, e ela acusou 1610 divergências.</p>
+
+<h2>9. Análise dos resultados e limitações</h2>
+<p>Os 44 casos fixos passaram, com a decisão obtida igual à esperada, e a comparação com o oráculo não teve divergências. Os três cenários de integração se comportaram como especificado. A cadeia correta é aceita pelas duas etapas. A rota que não refaz o caminho é barrada no AP, e o ALL nem é executado. A cadeia estruturalmente correta com caixas-pretas divergentes passa pelo AP e é barrada no ALL. Os motivos exibidos apontam a transição que faltou, o que torna cada decisão explicável pelo rastreamento.</p>
+<p>O AP executa exatamente n passos. O ALL cresce de forma quadrática, como previsto na seção 7.3:</p>
+<table style="width:60%">
+  <tr><th>n (tamanho de x|y)</th><th>Passos medidos do ALL</th><th>Limite 2n(n+2)+n+2</th></tr>
+<tr><td>3</td><td>11</td><td>35</td></tr>
+<tr><td>9</td><td>71</td><td>209</td></tr>
+<tr><td>19</td><td>291</td><td>819</td></tr>
+<tr><td>21</td><td>353</td><td>989</td></tr>
+<tr><td>41</td><td>1303</td><td>3569</td></tr>
+<tr><td>81</td><td>5003</td><td>13529</td></tr>
+</table>
+<p><strong>Limitações observadas nos testes:</strong></p>
+<ol>
+  <li><strong>O modelo exige refazer o caminho, não só voltar à base.</strong> O caso AP nº 11 (<code>BNLESOB#gvaga|gvaga</code>) é rejeitado, embora o drone, geometricamente, chegue à base: ele voa N, L e volta S, O, em vez de O, S. É uma escolha de modelagem (LIFO). Aceitar "voltar à base por qualquer caminho" exigiria |w|<sub>N</sub> = |w|<sub>S</sub> e |w|<sub>L</sub> = |w|<sub>O</sub>, e essa linguagem nem é livre de contexto: a interseção com N*L*S*O* dá N<sup>i</sup>L<sup>j</sup>S<sup>i</sup>O<sup>j</sup>, uma dependência cruzada. Seria tarefa para um ALL, não para um AP.</li>
+  <li><strong>Custo quadrático do ALL.</strong> Com n = 81 já são 5003 passos. O rastreamento completo fica longo para mostrar ao vivo, e o painel limita a entrada a 80 símbolos. Um sistema real contaria os eventos com contadores; aqui o objetivo é respeitar o modelo com fita limitada.</li>
+  <li><strong>O ALL não detecta troca de ordem.</strong> Por projeto, o reserva pode gravar em outra ordem. Se a ordem importasse, a regra passaria a ser cópia exata (x|x), que também não é livre de contexto e caberia num ALL parecido.</li>
+  <li><strong>Divisão de responsabilidades.</strong> O AP aceita registros de tamanhos diferentes (caso AP nº 3), porque tamanho e conteúdo dos registros são papel do ALL. No fluxo completo a cadeia seria barrada na etapa 2.</li>
+</ol>
+
+<h2>10. Contribuição de cada integrante</h2>
+<table>
+  <tr><th>Integrante</th><th>Contribuição</th><th>Parte apresentada</th></tr>
+  <tr><td class="preencher">[Nome 1]</td><td class="preencher">[ex.: problema, GLC e derivação]</td><td class="preencher">problema e GLC</td></tr>
+  <tr><td class="preencher">[Nome 2]</td><td class="preencher">[ex.: especificação e implementação do AP]</td><td class="preencher">AP e rastreamento</td></tr>
+  <tr><td class="preencher">[Nome 3]</td><td class="preencher">[ex.: especificação e implementação do ALL]</td><td class="preencher">ALL e limite da fita</td></tr>
+  <tr><td class="preencher">[Nome 4]</td><td class="preencher">[ex.: provas de classificação, testes e relatório]</td><td class="preencher">testes e limitações</td></tr>
+</table>
+
+<h2>11. Uso de inteligência artificial</h2>
+<p>A equipe usou o <strong>Claude Code (Anthropic)</strong> como ferramenta de apoio para:</p>
+<ul>
+  <li>sugerir o problema e a modelagem;</li>
+  <li>gerar o código dos simuladores, do painel interativo e dos testes;</li>
+  <li>redigir o relatório e os slides.</li>
+</ul>
+<p>A equipe conferiu:</p>
+<ul>
+  <li><span class="preencher">[confirmar]</span> cada transição das tabelas das seções 4.2 e 6.3 contra o código (Apêndices A e B, gerados a partir do próprio código);</li>
+  <li>os rastreamentos dos três cenários de integração, executados à mão;</li>
+  <li>as provas de não regularidade e de que a linguagem não é livre de contexto;</li>
+  <li>a execução de <code>python3 testes.py</code> sem falhas.</li>
+</ul>
+
+<h2 class="quebra">Apêndice A: transições do AP (44)</h2>
+<p class="nota">Lista gerada a partir de <code>automato_pilha.DELTA</code>. A notação é δ(estado, símbolo lido, topo) = (novo estado, substituição do topo).</p>
+<ol class='cols'><li>δ(q0, B, Z) = (q1, Z)</li><li>δ(q1, N, Z) = (q2, SZ)</li><li>δ(q2, N, N) = (q2, SN)</li><li>δ(q2, N, S) = (q2, SS)</li><li>δ(q2, N, L) = (q2, SL)</li><li>δ(q2, N, O) = (q2, SO)</li><li>δ(q2, E, N) = (q3, N)</li><li>δ(q3, N, N) = (q3, ε)</li><li>δ(q1, S, Z) = (q2, NZ)</li><li>δ(q2, S, N) = (q2, NN)</li><li>δ(q2, S, S) = (q2, NS)</li><li>δ(q2, S, L) = (q2, NL)</li><li>δ(q2, S, O) = (q2, NO)</li><li>δ(q2, E, S) = (q3, S)</li><li>δ(q3, S, S) = (q3, ε)</li><li>δ(q1, L, Z) = (q2, OZ)</li><li>δ(q2, L, N) = (q2, ON)</li><li>δ(q2, L, S) = (q2, OS)</li><li>δ(q2, L, L) = (q2, OL)</li><li>δ(q2, L, O) = (q2, OO)</li><li>δ(q2, E, L) = (q3, L)</li><li>δ(q3, L, L) = (q3, ε)</li><li>δ(q1, O, Z) = (q2, LZ)</li><li>δ(q2, O, N) = (q2, LN)</li><li>δ(q2, O, S) = (q2, LS)</li><li>δ(q2, O, L) = (q2, LL)</li><li>δ(q2, O, O) = (q2, LO)</li><li>δ(q2, E, O) = (q3, O)</li><li>δ(q3, O, O) = (q3, ε)</li><li>δ(q3, B, Z) = (q4, Z)</li><li>δ(q4, #, Z) = (q5, Z)</li><li>δ(q5, g, Z) = (q6, Z)</li><li>δ(q6, g, Z) = (q6, Z)</li><li>δ(q7, g, Z) = (q8, Z)</li><li>δ(q8, g, Z) = (q8, Z)</li><li>δ(q5, a, Z) = (q6, Z)</li><li>δ(q6, a, Z) = (q6, Z)</li><li>δ(q7, a, Z) = (q8, Z)</li><li>δ(q8, a, Z) = (q8, Z)</li><li>δ(q5, v, Z) = (q6, Z)</li><li>δ(q6, v, Z) = (q6, Z)</li><li>δ(q7, v, Z) = (q8, Z)</li><li>δ(q8, v, Z) = (q8, Z)</li><li>δ(q6, |, Z) = (q7, Z)</li></ol>
+
+<h2>Apêndice B: transições do ALL (38)</h2>
+<p class="nota">Lista gerada a partir de <code>automato_linear.DELTA</code>. A notação é δ(estado, símbolo lido) = (novo estado, símbolo escrito, movimento). Todo par (estado, símbolo) ausente leva a qrej.</p>
+<ol class='cols'><li>δ(q0, &lt;) = (q1, &lt;, D)</li><li>δ(q1, X) = (q1, X, D)</li><li>δ(q1, |) = (qv, |, D)</li><li>δ(qv, X) = (qv, X, D)</li><li>δ(qv, &gt;) = (qac, &gt;, P)</li><li>δ(qr, &lt;) = (q1, &lt;, D)</li><li>δ(q1, g) = (cg, X, D)</li><li>δ(cg, |) = (bg, |, D)</li><li>δ(bg, X) = (bg, X, D)</li><li>δ(bg, g) = (qr, X, E)</li><li>δ(cg, g) = (cg, g, D)</li><li>δ(cg, a) = (cg, a, D)</li><li>δ(bg, a) = (bg, a, D)</li><li>δ(cg, v) = (cg, v, D)</li><li>δ(bg, v) = (bg, v, D)</li><li>δ(q1, a) = (ca, X, D)</li><li>δ(ca, |) = (ba, |, D)</li><li>δ(ba, X) = (ba, X, D)</li><li>δ(ba, a) = (qr, X, E)</li><li>δ(ca, g) = (ca, g, D)</li><li>δ(ba, g) = (ba, g, D)</li><li>δ(ca, a) = (ca, a, D)</li><li>δ(ca, v) = (ca, v, D)</li><li>δ(ba, v) = (ba, v, D)</li><li>δ(q1, v) = (cv, X, D)</li><li>δ(cv, |) = (bv, |, D)</li><li>δ(bv, X) = (bv, X, D)</li><li>δ(bv, v) = (qr, X, E)</li><li>δ(cv, g) = (cv, g, D)</li><li>δ(bv, g) = (bv, g, D)</li><li>δ(cv, a) = (cv, a, D)</li><li>δ(bv, a) = (bv, a, D)</li><li>δ(cv, v) = (cv, v, D)</li><li>δ(qr, g) = (qr, g, E)</li><li>δ(qr, a) = (qr, a, E)</li><li>δ(qr, v) = (qr, v, E)</li><li>δ(qr, |) = (qr, |, E)</li><li>δ(qr, X) = (qr, X, E)</li></ol>
+
+</body>
+</html>

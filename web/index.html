@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Missão: AP + ALL</title>
+<!-- Painel interativo. Executa as tabelas δ exportadas do Python (automatos.js) com simulador.js;
+     testes.py confere que o JS produz rastreamentos idênticos aos do Python. -->
+<style>
+  :root {
+    --bg: #0a101d; --panel: #111a2c; --panel2: #16213a; --line: #263453;
+    --txt: #e8eefb; --mut: #8d9dbb; --ida: #38bdf8; --volta: #fbbf24;
+    --ok: #22c55e; --bad: #f43f5e; --mark: #a78bfa; --cw: 44px;
+    --sym: "DejaVu Sans", "Segoe UI", Arial, sans-serif; /* sem serifa: em fonte mono o O (Oeste) parece zero */
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt); font: 17px/1.4 system-ui, "Segoe UI", "DejaVu Sans", sans-serif; }
+  header { display: flex; align-items: baseline; gap: 18px; padding: 12px 22px 4px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 24px; letter-spacing: .5px; }
+  h1 span { color: var(--ida); }
+  .sub { color: var(--mut); font-size: 14px; }
+  .topo { padding: 6px 22px 8px; display: grid; gap: 8px; }
+  .linha { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  input[type=text] { flex: 1 1 340px; min-width: 240px; background: var(--panel); color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; font: 21px var(--sym); letter-spacing: 2px; }
+  input[type=text]:focus { outline: 2px solid var(--ida); }
+  input[readonly] { opacity: .8; }
+  button { background: var(--panel2); color: var(--txt); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+    font: inherit; font-size: 15px; cursor: pointer; }
+  button:hover { border-color: var(--ida); }
+  button:focus-visible { outline: 2px solid var(--ida); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.principal { background: #0e4b6b; border-color: var(--ida); font-weight: 600; }
+  button.destaque { background: #3b2a08; border-color: var(--volta); color: var(--volta); font-weight: 600; }
+  .pad { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pad[hidden] { display: none; }
+  .grupoPad { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 6px 8px; }
+  .grupoPad .rot { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); margin-right: 2px; }
+  .pad button { font-family: var(--sym); min-width: 44px; padding: 7px 10px; }
+  .pad button b { font-size: 18px; }
+  .pad button small { color: var(--mut); font-size: 12px; }
+  .pad .voo button { border-color: #1f5574; } .pad .reg button { border-color: #4b3d80; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chips button { font-size: 13px; padding: 5px 10px; border-radius: 99px; }
+  .controles { display: flex; gap: 6px; align-items: center; }
+  .controles label { color: var(--mut); font-size: 14px; display: flex; gap: 6px; align-items: center; }
+  .modo { margin-left: auto; font-size: 14px; color: var(--mut); }
+  .modo b { color: var(--txt); }
+  .desafio { background: #1d1606; border: 2px solid var(--volta); border-radius: 12px; padding: 12px 16px; display: grid; gap: 10px; }
+  .desafio[hidden] { display: none; }
+  .desafio .pergunta { font-size: 19px; }
+  .desafio code { font: 24px var(--sym); letter-spacing: 3px; color: var(--volta); }
+  .respostas { display: flex; gap: 10px; flex-wrap: wrap; }
+  .respostas button { font-size: 17px; padding: 10px 16px; }
+  .respostas button:disabled { opacity: 1; }
+  .respostas button.certa { border-color: var(--ok); background: #0b3a22; }
+  .respostas button.errada { border-color: var(--bad); background: #45101f; }
+  #dResultado { font-size: 18px; font-weight: 700; min-height: 24px; }
+  main { padding: 0 22px 18px; display: grid; gap: 12px; }
+  .painel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; transition: border-color .3s, opacity .3s; }
+  .painel.ativo { border-color: var(--ida); box-shadow: 0 0 0 1px var(--ida) inset; }
+  .painel.inativo { opacity: .55; }
+  .titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 10px; }
+  .titulo h2 { margin: 0; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+  .titulo h2 b { color: var(--txt); }
+  .etapa1 { display: grid; grid-template-columns: minmax(0, 1.6fr) 150px minmax(0, 1fr); gap: 14px; }
+  #mapa { width: 100%; height: clamp(220px, 34vh, 340px); background: #0c1426; border-radius: 10px; display: block; }
+  #drone { transition: transform .28s ease; }
+  .pilhaBox { display: flex; flex-direction: column; }
+  .pilhaBox .rot { font-size: 12px; color: var(--mut); text-align: center; margin-bottom: 6px; }
+  #pilha { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 6px;
+    border: 2px solid var(--line); border-top: none; border-radius: 0 0 10px 10px; min-height: clamp(200px, 30vh, 300px); }
+  .bloco { font: 20px var(--sym); text-align: center; padding: 5px 0; border-radius: 6px; background: #3b2a08; border: 1px solid var(--volta); color: var(--volta); }
+  .bloco small { font-size: 15px; opacity: .85; }
+  .bloco.base { background: #1d2740; border-color: var(--line); color: var(--mut); }
+  .bloco.entrou { animation: entra .35s ease-out; }
+  .bloco.saiu { animation: sai .45s ease-in forwards; background: transparent; border-style: dashed; }
+  @keyframes entra { from { transform: translateY(-26px); opacity: 0; } }
+  @keyframes sai { to { transform: translateY(-26px); opacity: 0; } }
+  .card { display: flex; flex-direction: column; gap: 8px; }
+  .estados { display: flex; flex-wrap: wrap; gap: 5px; }
+  .estados span { font: 14px var(--sym); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--mut); }
+  .estados span.atual { background: var(--ida); color: #04121d; border-color: var(--ida); font-weight: 700; }
+  .estados span.final { box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--mut); }
+  .grande { font: 700 30px var(--sym); }
+  .desc { color: var(--mut); font-size: 15px; min-height: 42px; }
+  .trans { font: 15px var(--sym); background: #0c1426; border-radius: 8px; padding: 8px 10px; min-height: 38px; word-break: break-word; }
+  .badge { display: inline-block; font: 15px var(--sym); padding: 4px 10px; border-radius: 99px; background: #2a1f4d; color: var(--mark); border: 1px solid var(--mark); }
+  .fitaGrid { display: grid; gap: 3px; justify-content: start; overflow-x: auto; padding-bottom: 4px; }
+  .grupo { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); text-align: center; border-bottom: 2px solid var(--line); padding-bottom: 2px; white-space: nowrap; overflow: hidden; }
+  .grupo.ida { border-color: var(--ida); } .grupo.volta { border-color: var(--volta); } .grupo.log { border-color: var(--mark); }
+  .ponteiro { text-align: center; color: var(--ida); font-size: 16px; line-height: 1; }
+  .cel { height: var(--cw); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 6px;
+    background: var(--panel2); border: 1px solid var(--line); font: 20px var(--sym); }
+  .cel.lido { opacity: .35; }
+  .cel.atual { border: 2px solid var(--ida); background: #0e3550; }
+  .cel.erro { border: 2px solid var(--bad); background: #4a0f1d; color: #ffd1da; }
+  .cel.borda { color: var(--mut); background: #0c1426; }
+  .cel.sep { color: var(--volta); }
+  .cel.marcado { color: var(--mark); background: #221a40; }
+  .cel .orig { font-size: 11px; color: var(--mut); line-height: 1; }
+  #banner { border-radius: 12px; padding: 12px 18px; font-size: 21px; font-weight: 700; display: none; align-items: center; gap: 14px; }
+  #banner small { display: block; font-size: 15px; font-weight: 400; opacity: .9; font-family: var(--sym); }
+  #banner.ok { display: flex; background: #0b3a22; border: 2px solid var(--ok); }
+  #banner.bad { display: flex; background: #45101f; border: 2px solid var(--bad); }
+  #banner.info { display: flex; background: #0d2438; border: 1px solid var(--ida); font-size: 17px; font-weight: 600; }
+  #progresso { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  #progresso div { height: 100%; width: 0; background: var(--ida); transition: width .2s; }
+  .vazio { color: var(--mut); font-style: italic; padding: 14px 0; }
+  .fases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .fase { background: var(--panel2); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+  .fase.ok { border-left-color: var(--ok); } .fase.erro { border-left-color: var(--bad); } .fase.andamento { border-left-color: var(--ida); }
+  .fase h3 { margin: 0 0 4px; font-size: 15px; } .fase h3 small { display: block; color: var(--mut); font-weight: 400; font-size: 12px; }
+  .fase .st { font-size: 14px; margin-bottom: 6px; }
+  .fase.ok .st { color: var(--ok); } .fase.erro .st { color: #ff9fb0; } .fase.andamento .st, .fase.pendente .st { color: var(--mut); }
+  .tokens { display: flex; flex-wrap: wrap; gap: 3px; max-height: 120px; overflow-y: auto; }
+  .tokens span { font: 11px var(--sym); padding: 1px 5px; border-radius: 4px; background: #0c1426; border: 1px solid var(--line); }
+  .codigo { margin: 0; font: 14px/1.45 "Ubuntu Mono", Consolas, "DejaVu Sans Mono", monospace; color: #cfe8ff; max-height: 220px; overflow-y: auto; }
+  .arvoreBox { overflow-x: auto; margin-top: 10px; }
+  #arvore { display: block; }
+  @media (max-width: 1100px) { .fases { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 1000px) { .etapa1 { grid-template-columns: 1fr; } #pilha { min-height: 120px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Controle de Missão <span>· Drone de Entrega</span></h1>
+  <div class="sub">Etapa 1 · AP: B w E inv(w) B # x | y &nbsp;·&nbsp; Etapa 2 · ALL: o registro reserva y é permutação do principal x</div>
+</header>
+
+<div class="topo">
+  <div class="linha">
+    <input id="entrada" type="text" maxlength="80" spellcheck="false" autocomplete="off" aria-label="Missão (cadeia de entrada)"
+           placeholder="pilote com os botões ou as setas, ou digite a cadeia">
+    <button class="principal" id="validar" title="Enter">▶ Validar missão</button>
+    <button id="apagar" title="Apagar o último comando (Backspace)" aria-label="Apagar o último comando">⌫</button>
+    <button id="limpar">Limpar</button>
+    <button class="destaque" id="btnDesafio">🎯 Desafio</button>
+  </div>
+
+  <div class="pad" id="pad">
+    <div class="grupoPad voo"><span class="rot">voo</span>
+      <button data-s="B" title="tecla B"><b>B</b> <small>base</small></button>
+      <button data-s="N" title="seta ↑ ou N"><b>↑</b> <small>N</small></button>
+      <button data-s="S" title="seta ↓ ou S"><b>↓</b> <small>S</small></button>
+      <button data-s="L" title="seta → ou L"><b>→</b> <small>L</small></button>
+      <button data-s="O" title="seta ← ou O"><b>←</b> <small>O</small></button>
+      <button data-s="E" title="tecla E"><b>E</b> <small>entregar</small></button>
+    </div>
+    <div class="grupoPad reg"><span class="rot">caixas-pretas</span>
+      <button data-s="#" title="tecla #"><b>#</b> <small>fim do voo</small></button>
+      <button data-s="g" title="tecla G"><b>g</b> <small>GPS</small></button>
+      <button data-s="a" title="tecla A"><b>a</b> <small>bateria</small></button>
+      <button data-s="v" title="tecla V"><b>v</b> <small>vento</small></button>
+      <button data-s="|" title="tecla |"><b>|</b> <small>reserva</small></button>
+    </div>
+    <div class="grupoPad"><span class="rot">prontas</span><div class="chips" id="presets"></div></div>
+  </div>
+
+  <section class="desafio" id="desafio" hidden aria-live="polite">
+    <div class="linha"><b>🎯 Desafio <span id="dNum"></span></b><span class="sub">placar: <b id="dPlacar">0/0</b></span>
+      <span class="sub">responda com 1, 2 ou 3 · Enter = próximo · Esc = sair</span></div>
+    <div class="pergunta">Qual será a decisão para <code id="dCadeia"></code> ?</div>
+    <div class="respostas" id="respostas">
+      <button data-r="ACEITA">1 · Aceita</button>
+      <button data-r="REJEITA_AP">2 · Rejeita no AP</button>
+      <button data-r="REJEITA_ALL">3 · Rejeita no ALL</button>
+    </div>
+    <div id="dResultado"></div>
+    <div class="linha"><button id="dProximo" class="principal">Próximo desafio</button><button id="dSair">Sair do desafio</button></div>
+  </section>
+
+  <div class="linha">
+    <div class="controles">
+      <button id="inicio" title="Início (Home)" aria-label="Início">⏮</button>
+      <button id="voltar" title="Passo anterior (←)" aria-label="Passo anterior">◀</button>
+      <button id="play" title="Play/pausa (espaço)" aria-label="Play ou pausa">▶</button>
+      <button id="avancar" title="Próximo passo (→)" aria-label="Próximo passo">▶|</button>
+      <button id="fim" title="Fim (End)" aria-label="Fim">⏭</button>
+      <label>velocidade <input id="vel" type="range" min="1" max="30" value="6"></label>
+    </div>
+    <div class="modo" id="modo"></div>
+  </div>
+</div>
+
+<main>
+  <div id="banner" aria-live="polite"></div>
+  <div id="progresso"><div></div></div>
+
+  <section class="painel" id="painelAp">
+    <div class="titulo"><h2><b>Etapa 1 · AP</b> · a volta precisa desfazer a ida (pilha = caminho de volta pendente)</h2><span class="sub" id="passoAp"></span></div>
+    <div class="fitaGrid" id="entradaAp"></div>
+    <div class="etapa1" style="margin-top:10px">
+      <svg id="mapa" role="img" aria-label="Mapa da rota do drone"></svg>
+      <div class="pilhaBox"><div class="rot">PILHA (topo ↑)</div><div id="pilha"></div></div>
+      <div class="card">
+        <div class="estados" id="estadosAp"></div>
+        <div class="grande" id="estadoAp">—</div>
+        <div class="desc" id="descAp"></div>
+        <div class="trans" id="transAp"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="painel" id="painelAll">
+    <div class="titulo"><h2><b>Etapa 2 · ALL</b> · as caixas-pretas têm os mesmos eventos? (fita: n células + marcadores &lt; &gt;)</h2><span class="sub" id="passoAll"></span></div>
+    <div class="fitaGrid" id="fitaAll"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+      <div class="card">
+        <div class="estados" id="estadosAll"></div>
+        <div style="display:flex;gap:14px;align-items:center"><div class="grande" id="estadoAll">—</div><span id="carga"></span></div>
+      </div>
+      <div class="card">
+        <div class="desc" id="descAll"></div>
+        <div class="trans" id="transAll"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="painel" id="painelComp">
+    <div class="titulo"><h2><b>Visão de compilador</b> · o mesmo voo passa pelas fases de um compilador, cada uma num nível da hierarquia de Chomsky</h2></div>
+    <div class="fases">
+      <div class="fase" id="fLex"><h3>1 · Análise léxica<small>Σ* é regular (tipo 3)</small></h3><div class="st"></div><div class="corpo"></div></div>
+      <div class="fase" id="fSin"><h3>2 · Análise sintática = AP<small>GLC, livre de contexto (tipo 2)</small></h3><div class="st"></div><div class="corpo"></div></div>
+      <div class="fase" id="fSem"><h3>3 · Análise semântica = ALL<small>sensível ao contexto (tipo 1)</small></h3><div class="st"></div><div class="corpo"></div></div>
+      <div class="fase" id="fCod"><h3>4 · Geração de código<small>com otimização peephole</small></h3><div class="st"></div><div class="corpo"></div></div>
+    </div>
+    <div class="arvoreBox"><svg id="arvore" role="img" aria-label="Árvore de derivação"></svg></div>
+  </section>
+</main>
+
+<script src="automatos.js"></script>
+<script src="simulador.js"></script>
+<script>
+const PRESETS = [
+  ["✔ Missão perfeita", "BNLLNESOOSB#gvag|aggv"],
+  ["✘ Volta errada", "BNLLNESOONB#gvag|aggv"],
+  ["✘ Caixa-preta divergente", "BNLLNESOOSB#gvag|aggg"],
+  ["✘ Volta na ordem da ida", "BNLESOB#gvaga|gvaga"],
+  ["Rota em U", "BNNLLLSSENNOOOSSB#gav|vag"],
+  ["⚠ Símbolo inválido", "BNLLNESOOSB#gvxg|aggv"],
+];
+const NOMES = { ACEITA: "Aceita", REJEITA_AP: "Rejeita no AP", REJEITA_ALL: "Rejeita no ALL", ERRO: "Erro de entrada" };
+const ESTADOS_AP = ["q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"];
+const ESTADOS_ALL = ["q0", "q1", "cg", "ca", "cv", "bg", "ba", "bv", "qr", "qv", "qac", "qrej"];
+const DIR = { N: [0, -1], S: [0, 1], L: [1, 0], O: [-1, 0] };
+const SETA = { N: "↑", S: "↓", L: "→", O: "←" };
+const COR = { ida: "#38bdf8", volta: "#fbbf24", bad: "#f43f5e", ok: "#22c55e", mut: "#8d9dbb" };
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// modo: "pilotar" (o AP roda a cada comando), "replay" (animação da validação) ou "desafio" (prever antes de ver)
+let modo = "pilotar", dados = null, simbolos = [], pts = [], quadro = 0, total = 1, timer = null, caixaMapa = "";
+let desafio = null, comp = null;
+const placar = { acertos: 0, total: 0 };
+const nAp = () => (dados && dados.ap ? dados.ap.passos.length : 0);
+const nAll = () => (dados && dados.all ? dados.all.passos.length : 0);
+const respondido = () => modo !== "desafio" || !!desafio.resposta;
+
+function carregar(cadeia, novoModo, passo = 0) {
+  parar();
+  modo = novoModo;
+  cadeia = Array.from(cadeia).slice(0, LIMITE).join(""); // também vale para ?cadeia= na URL
+  dados = validar(cadeia);
+  comp = compilar(cadeia);
+  simbolos = Array.from(cadeia);
+  if ($("#entrada").value !== cadeia) $("#entrada").value = cadeia;
+  total = Math.max(1, nAp() + nAll());
+  prepararMapa();
+  history.replaceState(null, "", cadeia ? "?cadeia=" + encodeURIComponent(cadeia) : location.pathname);
+  quadro = modo === "pilotar" ? Math.max(0, nAp() - 1) : passo === "fim" ? total - 1 : Math.min(Number(passo) || 0, total - 1);
+  $("#pad").hidden = modo === "desafio";
+  $("#desafio").hidden = modo !== "desafio";
+  $("#entrada").readOnly = modo === "desafio";
+  render();
+}
+const editar = (cadeia) => carregar(cadeia, "pilotar");
+const LIMITE = 80; // o ALL faz O(n²) passos: acima disso a animação fica longa e o navegador pesa
+const comando = (s) => { if (Array.from($("#entrada").value).length < LIMITE) editar($("#entrada").value + s); };
+
+function irPara(f) {
+  if (!dados || !respondido()) return;
+  if (modo === "pilotar") modo = "replay";
+  quadro = Math.max(0, Math.min(total - 1, f));
+  render();
+  if (quadro === total - 1) parar();
+}
+function parar() { clearInterval(timer); timer = null; $("#play").textContent = "▶"; }
+function tocar() {
+  if (!dados || !respondido()) return;
+  if (modo === "pilotar") { modo = "replay"; quadro = 0; }
+  if (quadro === total - 1) quadro = 0;
+  parar();
+  $("#play").textContent = "⏸";
+  render();
+  timer = setInterval(() => irPara(quadro + 1), 1000 / $("#vel").value);
+}
+function validarMissao() { carregar($("#entrada").value, "replay"); tocar(); }
+
+// ---------- desafio ----------
+function novoDesafio() {
+  desafio = { cadeia: sortearMissao(), resposta: null };
+  carregar(desafio.cadeia, "desafio");
+}
+function responder(r) {
+  if (modo !== "desafio" || desafio.resposta) return;
+  desafio.resposta = r;
+  placar.total++;
+  if (r === dados.decisao) placar.acertos++;
+  tocar();
+}
+
+// ---------- etapa 1: entrada, mapa, pilha ----------
+function grupos(fim) {
+  const s = simbolos.join(""), e = s.indexOf("E"), h = s.indexOf("#"), b = h < 0 ? -1 : s.indexOf("|", h);
+  const g = [];
+  if (e > 0) g.push([1, e, "ida", "ida"]);
+  const fimVolta = h >= 0 ? h - 1 : fim; // pilotando, a volta ainda pode estar incompleta
+  if (e >= 0 && fimVolta > e + 1) g.push([e + 1, fimVolta, "volta", "volta"]);
+  if (h >= 0 && b > h + 1) g.push([h + 1, b, "principal", "log"]);
+  if (b >= 0 && fim > b + 1) g.push([b + 1, fim, "reserva", "log"]);
+  return g; // [início, fim exclusivo, rótulo, classe] em índices de símbolo
+}
+
+function renderEntrada(cfg) {
+  const n = simbolos.length, el = $("#entradaAp");
+  el.style.gridTemplateColumns = `repeat(${Math.max(n, 1)}, var(--cw))`;
+  let html = grupos(n).map(([a, b, rot, cls]) =>
+    `<div class="grupo ${cls}" style="grid-row:1;grid-column:${a + 1}/${b + 1}">${rot}</div>`).join("");
+  const pos = cfg ? cfg.pos : -1, travou = cfg && cfg.transicao === "sem transição";
+  const invalido = dados.decisao === "ERRO" ? simbolos.findIndex((c) => !AUTOMATOS.ap.alfabeto.includes(c)) : -1;
+  if (pos >= 0 && pos < n) html += `<div class="ponteiro" style="grid-row:2;grid-column:${pos + 1}">▼</div>`;
+  simbolos.forEach((c, i) => {
+    let cls = i < pos ? "lido" : i === pos ? (travou ? "erro" : "atual") : "";
+    if (i === invalido) cls = "erro";
+    html += `<div class="cel ${cls}" style="grid-row:3;grid-column:${i + 1}">${esc(c)}</div>`;
+  });
+  el.innerHTML = n ? html : `<div class="vazio">(missão vazia: comece pela base, B)</div>`;
+}
+
+function prepararMapa() {
+  pts = [[0, 0]];
+  let x = 0, y = 0;
+  for (const c of simbolos) { if (DIR[c]) { x += DIR[c][0]; y += DIR[c][1]; } pts.push([x, y]); }
+  const ultimo = dados.ap ? dados.ap.passos[nAp() - 1].pos : 0;
+  const usados = pts.slice(0, Math.min(pts.length, ultimo + 2));
+  let x0 = Math.min(...usados.map((p) => p[0])) - 1, x1 = Math.max(...usados.map((p) => p[0])) + 1;
+  let y0 = Math.min(...usados.map((p) => p[1])) - 1, y1 = Math.max(...usados.map((p) => p[1])) + 1;
+  while (x1 - x0 < 9) { x0 -= 0.5; x1 += 0.5; }
+  while (y1 - y0 < 5) { y0 -= 0.5; y1 += 0.5; }
+  const caixa = `${x0} ${y0} ${x1 - x0} ${y1 - y0}`;
+  if (caixa === caixaMapa) return; // mantém o drone no SVG para a animação continuar suave
+  caixaMapa = caixa;
+  const svg = $("#mapa");
+  svg.setAttribute("viewBox", caixa);
+  let grade = "";
+  for (let gx = Math.ceil(x0); gx <= x1; gx++)
+    for (let gy = Math.ceil(y0); gy <= y1; gy++) grade += `<circle cx="${gx}" cy="${gy}" r="0.04" fill="#2b3a5c"/>`;
+  svg.innerHTML = `
+    <defs>${["ida", "volta", "bad", "ok"].map((k) => `<marker id="m-${k}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3"
+      markerHeight="3" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${COR[k]}"/></marker>`).join("")}</defs>
+    <g>${grade}</g>
+    <g><rect x="-0.28" y="-0.18" width="0.56" height="0.42" fill="#1e3a5f" stroke="${COR.ida}" stroke-width="0.04"/>
+      <path d="M-0.36,-0.16 L0,-0.45 L0.36,-0.16 z" fill="${COR.ida}"/>
+      <text x="0" y="0.58" fill="${COR.mut}" font-size="0.22" text-anchor="middle">BASE</text></g>
+    <g id="rota"></g>
+    <g id="drone"><line x1="-0.2" y1="-0.2" x2="0.2" y2="0.2" stroke="#cbd5e1" stroke-width="0.05"/>
+      <line x1="0.2" y1="-0.2" x2="-0.2" y2="0.2" stroke="#cbd5e1" stroke-width="0.05"/>
+      ${[[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]].map(([a, b]) =>
+        `<circle cx="${a}" cy="${b}" r="0.12" fill="none" stroke="${COR.ida}" stroke-width="0.04"/>`).join("")}
+      <rect x="-0.1" y="-0.1" width="0.2" height="0.2" rx="0.04" fill="#e8eefb"/></g>`;
+}
+
+function segmento(i, j, cor, desloc, extra = "") {
+  const [ax, ay] = pts[i], [bx, by] = pts[j];
+  const ox = ay === by ? 0 : desloc, oy = ax === bx ? 0 : desloc; // volta desenhada ao lado da ida
+  return `<line x1="${ax + ox}" y1="${ay + oy}" x2="${bx + ox}" y2="${by + oy}" stroke="${COR[cor]}" stroke-width="0.09"
+    stroke-linecap="round" marker-end="url(#m-${cor})" ${extra}/>`;
+}
+
+function renderMapa(cfg) {
+  const p = cfg ? cfg.pos : 0, e = simbolos.indexOf("E");
+  let html = "";
+  for (let i = 0; i < p; i++)
+    if (DIR[simbolos[i]]) html += segmento(i, i + 1, e >= 0 && i > e ? "volta" : "ida", e >= 0 && i > e ? 0.14 : 0);
+  if (e >= 0 && p > e) {
+    const [ex, ey] = pts[e];
+    html += `<g transform="translate(${ex},${ey})"><rect x="-0.2" y="-0.2" width="0.4" height="0.4" fill="#5b3d0a" stroke="${COR.volta}" stroke-width="0.04"/>
+      <path d="M-0.2,0 H0.2 M0,-0.2 V0.2" stroke="${COR.volta}" stroke-width="0.03"/>
+      <text x="0" y="-0.32" fill="${COR.volta}" font-size="0.22" text-anchor="middle">ENTREGA</text></g>`;
+  }
+  const topo = cfg && cfg.pilha[0];
+  if (cfg && cfg.estado === "q3" && DIR[topo]) { // a pilha diz para onde o drone deve ir
+    const [x, y] = pts[p], [dx, dy] = DIR[topo];
+    html += `<line x1="${x}" y1="${y}" x2="${x + dx * 0.8}" y2="${y + dy * 0.8}" stroke="${COR.ok}" stroke-width="0.05"
+      stroke-dasharray="0.12 0.08" marker-end="url(#m-ok)"/>
+      <text x="${x + (dy ? 0.38 : 0)}" y="${y + (dy ? dy * 0.5 + 0.07 : -0.42)}" fill="${COR.ok}" font-size="0.22"
+        text-anchor="${dy ? "start" : "middle"}">pilha: ${topo}</text>`;
+  }
+  if (cfg && cfg.transicao === "sem transição" && DIR[simbolos[p]]) {
+    const [bx, by] = pts[p + 1];
+    html += segmento(p, p + 1, "bad", 0.14, `stroke-dasharray="0.15 0.1"`) +
+      `<text x="${bx}" y="${by + 0.12}" fill="${COR.bad}" font-size="0.42" text-anchor="middle" font-weight="700">✕</text>`;
+  }
+  $("#rota").innerHTML = html;
+  const [x, y] = pts[p];
+  $("#drone").style.transform = `translate(${x}px, ${y}px)`;
+}
+
+let pilhaAnterior = "";
+function renderPilha(cfg) {
+  const el = $("#pilha");
+  if (!cfg) { el.innerHTML = ""; pilhaAnterior = ""; return; }
+  const p = cfg.pilha, cresceu = p.length > pilhaAnterior.length, encolheu = p.length < pilhaAnterior.length;
+  let html = encolheu ? `<div class="bloco saiu">${esc(pilhaAnterior[0])} <small>${SETA[pilhaAnterior[0]] || ""}</small></div>` : "";
+  html += Array.from(p).map((s, i) => s === "Z" ? `<div class="bloco base">Z</div>`
+    : `<div class="bloco${i === 0 && cresceu ? " entrou" : ""}">${s} <small>${SETA[s]}</small></div>`).join("");
+  el.innerHTML = html;
+  pilhaAnterior = p;
+}
+
+function chips(el, lista, atual, finais) {
+  $(el).innerHTML = lista.map((q) => `<span class="${q === atual ? "atual" : ""} ${finais.includes(q) ? "final" : ""}">${q}</span>`).join("");
+}
+
+// ---------- etapa 2: fita do ALL ----------
+function renderFita(cfg) {
+  const el = $("#fitaAll");
+  if (!dados.all || !respondido()) {
+    el.style.gridTemplateColumns = "1fr";
+    el.innerHTML = `<div class="vazio">${!respondido() ? "responda para ver o ALL trabalhar"
+      : dados.decisao === "ERRO" ? "não executado: entrada inválida"
+      : modo === "pilotar" ? "o ALL roda quando o AP aceitar a missão completa (… # principal | reserva)"
+      : "não executado: o AP rejeitou a estrutura, então o ALL não roda"}</div>`;
+    return;
+  }
+  const original = dados.all.passos[0].fita, fita = cfg ? cfg.fita : original, cab = cfg ? cfg.cab : -1;
+  const n = fita.length, sep = original.indexOf("|");
+  el.style.gridTemplateColumns = `repeat(${n}, var(--cw))`;
+  let html = "";
+  if (sep > 1) html += `<div class="grupo log" style="grid-row:1;grid-column:2/${sep + 1}">principal</div>`;
+  if (sep >= 0 && sep < n - 2) html += `<div class="grupo log" style="grid-row:1;grid-column:${sep + 2}/${n}">reserva</div>`;
+  if (cab >= 0) html += `<div class="ponteiro" style="grid-row:2;grid-column:${cab + 1}">▼</div>`;
+  Array.from(fita).forEach((c, i) => {
+    const cls = c === "<" || c === ">" ? "borda" : c === "|" ? "sep" : c === "X" ? "marcado" : "";
+    const foco = cfg && i === cab ? (cfg.estado === "qrej" ? " erro" : " atual") : "";
+    html += `<div class="cel ${cls}${foco}" style="grid-row:3;grid-column:${i + 1}">${esc(c)}${c === "X" ? `<span class="orig">${esc(original[i])}</span>` : ""}</div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ---------- dica ao vivo (modo pilotar) ----------
+function dicaPiloto() {
+  if (dados.decisao === "ERRO") return ["bad", `⚠ Erro de entrada<small>${esc(dados.motivo)}</small>`];
+  const ult = dados.ap.passos[nAp() - 1];
+  if (ult.transicao === "sem transição")
+    return ["bad", `✕ O AP travou: nenhuma continuação salva esta missão<small>${esc(dados.ap.motivo)} · apague com ⌫ e tente outro comando</small>`];
+  const falta = Array.from(ult.pilha.replace("Z", "")).map((c) => `${c}${SETA[c]}`).join(" ");
+  const proximo = {
+    q0: "comece pela base: B",
+    q1: "faça o 1º movimento (setas ou N S L O)",
+    q2: `voe mais ou entregue com E · a volta pendente na pilha é ${falta}`,
+    q3: falta ? `volte pelo mesmo caminho · falta voar: ${falta}` : "volta completa: pouse na base com B",
+    q4: "feche o voo com #",
+    q5: "registre eventos na caixa-preta principal: g, a, v",
+    q6: "mais eventos, ou | para passar à caixa-preta reserva",
+    q7: "registre eventos na caixa-preta reserva: g, a, v",
+    q8: "estrutura válida! Clique em ▶ Validar missão (Enter) para rodar o ALL",
+  }[ult.estado];
+  return ["info", `AP em ${ult.estado} → ${proximo}`];
+}
+
+// ---------- visão de compilador ----------
+function fase(id, classe, status, corpo = "") {
+  const el = $("#" + id);
+  el.className = "fase " + classe;
+  el.querySelector(".st").innerHTML = status;
+  el.querySelector(".corpo").innerHTML = corpo;
+}
+
+function renderCompilador() {
+  const travou = dados.ap && dados.ap.passos[nAp() - 1].transicao === "sem transição";
+  // sem spoiler: cada fase só mostra o resultado depois que o autômato correspondente terminou na tela
+  const sinPronta = respondido() && (modo === "pilotar" ? dados.ap && (dados.ap.aceita || travou) : quadro >= nAp() - 1);
+  const semPronta = respondido() && modo !== "pilotar" && quadro === total - 1;
+  if (!comp.tokens) fase("fLex", "erro", "✘ erro léxico", esc(comp.erro.replace("erro léxico: ", "")));
+  else fase("fLex", "ok", `✔ ${comp.tokens.length} tokens`, `<div class="tokens">${comp.tokens.map((t) => `<span>${esc(t)}</span>`).join("")}</div>`);
+
+  if (!comp.tokens) fase("fSin", "pendente", "— não executada");
+  else if (!sinPronta) fase("fSin", "andamento", modo === "pilotar" ? `… AP em ${dados.ap.passos[nAp() - 1].estado}: missão incompleta` : "… AP analisando");
+  else if (comp.arvore) fase("fSin", "ok", "✔ árvore de derivação abaixo", "<small class='sub'>cada R aberto = um empilhamento; cada R fechado = um desempilhamento</small>");
+  else fase("fSin", "erro", "✘ erro sintático", `<small>${esc(dados.ap.motivo)}</small>`);
+
+  if (!comp.arvore || !sinPronta) fase("fSem", "pendente", comp.tokens && !sinPronta ? "… aguardando a sintática" : "— não executada");
+  else if (!semPronta) fase("fSem", modo === "pilotar" ? "pendente" : "andamento", modo === "pilotar" ? "▶ Validar missão roda o ALL" : "… ALL conferindo as caixas-pretas");
+  else if (comp.codigo) fase("fSem", "ok", "✔ caixas-pretas conferem", "<small class='sub'>como checar nº de argumentos ou declaração antes do uso: regra fora do alcance de uma GLC</small>");
+  else fase("fSem", "erro", "✘ erro semântico", `<small>${esc(dados.all.motivo)}</small>`);
+
+  if (comp.codigo && semPronta)
+    fase("fCod", "ok", `✔ ${comp.instrucoes_antes} → ${comp.codigo.length} instruções`, `<pre class="codigo">${esc(comp.codigo.join("\n"))}</pre>`);
+  else fase("fCod", "pendente", semPronta || comp.erro && (sinPronta || !comp.tokens) ? "— não gerado: compilação interrompida" : "— aguardando");
+
+  renderArvore(sinPronta ? comp.arvore : null);
+}
+
+function renderArvore(raiz) {
+  const svg = $("#arvore");
+  if (!raiz) { svg.style.display = "none"; return; }
+  // folhas em x = 0, 1, 2… na ordem da entrada (a árvore gera a própria cadeia); nó interno centrado nos filhos.
+  // Cada folha fica logo abaixo do pai, então pares N…S, L…O aparecem no mesmo nível: o aninhamento que a pilha resolve.
+  let colunas = 0, altura = 0;
+  const nos = [], arestas = [];
+  (function posicionar(no, d) {
+    altura = Math.max(altura, d);
+    if (typeof no === "string") { const p = { x: colunas++, d, rotulo: no, folha: true }; nos.push(p); return p; }
+    const filhos = no[1].map((f) => posicionar(f, d + 1));
+    const p = { x: (filhos[0].x + filhos.at(-1).x) / 2, d, rotulo: no[0] };
+    nos.push(p);
+    filhos.forEach((f) => arestas.push([p, f]));
+    return p;
+  })(raiz, 0);
+  const W = 47, H = 40, cor = (r) => "NSLO".includes(r) ? COR.ida : "gav".includes(r) ? "#a78bfa" : COR.mut;
+  svg.style.display = "block";
+  svg.setAttribute("width", colunas * W + 20);
+  svg.setAttribute("height", altura * H + 44);
+  svg.setAttribute("viewBox", `-24 -20 ${colunas * W + 20} ${altura * H + 44}`);
+  svg.innerHTML = arestas.map(([a, b]) => `<line x1="${a.x * W}" y1="${a.d * H + 12}" x2="${b.x * W}" y2="${b.d * H - 12}" stroke="#33466e" stroke-width="1.5"/>`).join("") +
+    nos.map((p) => p.folha
+      ? `<text x="${p.x * W}" y="${p.d * H + 6}" text-anchor="middle" font-size="17" fill="${cor(p.rotulo)}" font-family="DejaVu Sans, Arial">${esc(p.rotulo)}</text>`
+      : `<circle cx="${p.x * W}" cy="${p.d * H}" r="12" fill="#16213a" stroke="${COR.volta}" stroke-width="1.5"/>
+         <text x="${p.x * W}" y="${p.d * H + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#e8eefb" font-family="DejaVu Sans, Arial">${p.rotulo}</text>`).join("");
+}
+
+// ---------- quadro ----------
+function render() {
+  if (!dados) return;
+  const a = nAp(), noAll = dados.all && quadro >= a && modo !== "pilotar";
+  const cfgAp = a ? dados.ap.passos[Math.min(quadro, a - 1)] : null;
+  const cfgAll = noAll ? dados.all.passos[quadro - a] : null;
+
+  renderEntrada(cfgAp);
+  renderMapa(cfgAp);
+  renderPilha(cfgAp);
+  chips("#estadosAp", ESTADOS_AP, cfgAp && cfgAp.estado, ["q8"]);
+  $("#estadoAp").textContent = cfgAp ? cfgAp.estado : "—";
+  $("#descAp").textContent = cfgAp ? AUTOMATOS.ap.descricao[cfgAp.estado] : "";
+  $("#transAp").textContent = !cfgAp ? "" : cfgAp.transicao && cfgAp.transicao !== "sem transição"
+    ? `próximo: ${cfgAp.transicao}` : modo === "pilotar" && !cfgAp.transicao ? "aguardando o próximo comando" : dados.ap.motivo;
+  $("#passoAp").textContent = a ? `passo ${Math.min(quadro, a - 1)} / ${a - 1}` : "";
+
+  renderFita(cfgAll);
+  chips("#estadosAll", ESTADOS_ALL, cfgAll && cfgAll.estado, ["qac"]);
+  $("#estadoAll").textContent = cfgAll ? cfgAll.estado : "—";
+  $("#descAll").textContent = cfgAll ? AUTOMATOS.all.descricao[cfgAll.estado] || "" : "";
+  $("#transAll").textContent = !cfgAll ? "" : cfgAll.transicao.startsWith("δ") ? `próximo: ${cfgAll.transicao}` : dados.all.motivo;
+  const levando = cfgAll && /^[cb][gav]$/.test(cfgAll.estado) ? cfgAll.estado[1] : "";
+  $("#carga").innerHTML = levando ? `<span class="badge">memória do estado: '${levando}'</span>` : "";
+  $("#passoAll").textContent = cfgAll ? `passo ${quadro - a} / ${nAll() - 1}` : "";
+
+  $("#painelAp").className = "painel " + (cfgAp && !noAll ? "ativo" : "");
+  $("#painelAll").className = "painel " + (noAll ? "ativo" : dados.all ? "" : "inativo");
+  $("#progresso div").style.width = `${modo === "pilotar" ? 0 : total > 1 ? (100 * quadro) / (total - 1) : 100}%`;
+
+  $("#modo").innerHTML = {
+    pilotar: "✈ <b>pilotando</b>: o AP roda a cada comando",
+    replay: "▶ <b>replay</b> da validação · espaço, ← → · qualquer comando volta a pilotar",
+    desafio: "🎯 <b>desafio</b>: preveja antes de ver",
+  }[modo];
+  for (const id of ["inicio", "voltar", "play", "avancar", "fim"]) $("#" + id).disabled = !respondido();
+
+  const b = $("#banner");
+  if (modo === "pilotar") {
+    const [cls, html] = dicaPiloto();
+    b.className = cls;
+    b.innerHTML = `<div>${html}</div>`;
+  } else if (quadro === total - 1 && respondido()) {
+    const titulos = {
+      ACEITA: "✔ MISSÃO APROVADA: AP e ALL aceitaram",
+      REJEITA_AP: "✘ REPROVADA NA ETAPA 1 (AP): a rota não volta pelo mesmo caminho",
+      REJEITA_ALL: "✘ REPROVADA NA ETAPA 2 (ALL): as caixas-pretas divergem",
+      ERRO: "⚠ ERRO DE ENTRADA",
+    };
+    b.className = dados.decisao === "ACEITA" ? "ok" : "bad";
+    b.innerHTML = `<div>${titulos[dados.decisao]}<small>${esc(dados.motivo)}</small></div>`;
+  } else b.className = "";
+
+  renderCompilador();
+
+  if (modo === "desafio") {
+    $("#dNum").textContent = `nº ${placar.total + (desafio.resposta ? 0 : 1)}`;
+    $("#dPlacar").textContent = `${placar.acertos}/${placar.total}`;
+    $("#dCadeia").textContent = desafio.cadeia;
+    for (const btn of document.querySelectorAll("#respostas button")) {
+      btn.disabled = !!desafio.resposta;
+      btn.className = !desafio.resposta ? "" : btn.dataset.r === dados.decisao ? "certa" : btn.dataset.r === desafio.resposta ? "errada" : "";
+    }
+    $("#dResultado").textContent = !desafio.resposta ? ""
+      : desafio.resposta === dados.decisao ? "✔ Acertou! Veja na animação as operações que levam à decisão."
+      : `✘ Era "${NOMES[dados.decisao]}". Acompanhe na animação onde a pilha ou a fita decidem.`;
+  }
+}
+
+// ---------- eventos ----------
+$("#presets").innerHTML = PRESETS.map(([rot, c], i) => `<button data-i="${i}" title="${esc(c)}">${rot}</button>`).join("");
+$("#presets").addEventListener("click", (ev) => { const i = ev.target.closest("button")?.dataset.i; if (i !== undefined) carregar(PRESETS[i][1], "replay"); });
+$("#pad").addEventListener("click", (ev) => { const s = ev.target.closest("button[data-s]")?.dataset.s; if (s) comando(s); });
+$("#respostas").addEventListener("click", (ev) => { const r = ev.target.closest("button")?.dataset.r; if (r) responder(r); });
+$("#entrada").addEventListener("input", (ev) => editar(ev.target.value));
+$("#validar").onclick = validarMissao;
+$("#apagar").onclick = () => editar(Array.from($("#entrada").value).slice(0, -1).join(""));
+$("#limpar").onclick = () => editar("");
+$("#btnDesafio").onclick = novoDesafio;
+$("#dProximo").onclick = novoDesafio;
+$("#dSair").onclick = () => editar(desafio.cadeia);
+$("#play").onclick = () => (timer ? parar() : tocar());
+$("#avancar").onclick = () => { parar(); irPara(quadro + 1); };
+$("#voltar").onclick = () => { parar(); irPara(quadro - 1); };
+$("#inicio").onclick = () => { parar(); irPara(0); };
+$("#fim").onclick = () => { parar(); irPara(total - 1); };
+$("#vel").oninput = () => { if (timer) tocar(); };
+$("#vel").onchange = (ev) => ev.target.blur();
+document.addEventListener("click", (ev) => ev.target.closest("button")?.blur()); // o teclado volta a pilotar
+
+const TECLAS_VOO = { ArrowUp: "N", ArrowDown: "S", ArrowRight: "L", ArrowLeft: "O" };
+document.addEventListener("keydown", (ev) => {
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (ev.target.tagName === "INPUT" && ev.target.type === "text") {
+    if (ev.key === "Enter" && modo !== "desafio") validarMissao();
+    return;
+  }
+  if (ev.target.tagName === "BUTTON" && (ev.key === "Enter" || ev.key === " ")) return;
+  const replay = { " ": () => $("#play").click(), ArrowRight: () => $("#avancar").click(), ArrowLeft: () => $("#voltar").click(),
+    Home: () => $("#inicio").click(), End: () => $("#fim").click() };
+  const k = ev.key;
+  let acao = null;
+  if (modo === "desafio") {
+    if (k === "Escape") acao = () => editar(desafio.cadeia);
+    else if (!desafio.resposta && "123".includes(k) && k.length === 1) acao = () => responder(["ACEITA", "REJEITA_AP", "REJEITA_ALL"][k - 1]);
+    else if (desafio.resposta && k === "Enter") acao = novoDesafio;
+    else if (desafio.resposta) acao = replay[k];
+  } else if (modo === "replay" && replay[k]) acao = replay[k];
+  else if (k === "Enter") acao = validarMissao;
+  else if (k === " ") acao = tocar;
+  else if (k === "Backspace") acao = () => $("#apagar").click();
+  else {
+    const s = TECLAS_VOO[k] || (/^[nslobe]$/i.test(k) ? k.toUpperCase() : /^[gav]$/i.test(k) ? k.toLowerCase() : k === "#" || k === "|" ? k : null);
+    if (s) acao = () => comando(s);
+  }
+  if (acao) { ev.preventDefault(); acao(); }
+});
+
+const params = new URLSearchParams(location.search);
+const inicial = params.get("cadeia");
+if (params.has("desafio")) novoDesafio();
+else if (params.has("passo")) carregar(inicial ?? PRESETS[0][1], "replay", params.get("passo"));
+else editar(inicial ?? "");
+</script>
+</body>
+</html>

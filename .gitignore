@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Segredos: nunca versionar
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+
+# Material interno da equipe (preparação da arguição): fica só local
+docs/roteiro-apresentacao.md
