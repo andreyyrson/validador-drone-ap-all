@@ -64,7 +64,6 @@
 </head>
 <body>
 
-<!-- 1 ─────────────────────────────────────────────── -->
 <section>
   <div class="titulo">
     <p class="sub" style="font-size:20px">MISSÃO LFA · ENTREGAR, VOLTAR E PROVAR QUE VOLTOU</p>
@@ -76,27 +75,28 @@
   </div>
 </section>
 
-<!-- 2 ─────────────────────────────────────────────── -->
 <section>
   <h2>Missão: entregar e voltar pelo mesmo caminho</h2>
-  <p class="sub">O problema que o validador resolve</p>
+  <p class="sub">Um validador em duas etapas: primeiro a pilha, depois a fita</p>
   <div class="cols">
-    <div style="flex:1.35">
+    <div style="flex:1.4">
       <ul>
-        <li>O drone sai da <b>base B</b>, cumpre a rota <b>w</b> e chega ao <b>ponto de entrega E</b>.</li>
-        <li>Na volta, refaz o caminho <b>ao contrário</b>: o último movimento da ida é o primeiro desfeito, com a direção <b>oposta</b> (N↔S, L↔O). Chamamos isso de <code>inv(w)</code>.</li>
-        <li>Duas caixas-pretas gravam os eventos do voo: <b>principal x</b> e <b>reserva y</b>. O reserva usa buffer assíncrono: mesmos eventos, mesmas quantidades, ordem livre.</li>
+        <li>A volta desfaz a ida <b>ao contrário</b>, com a direção <b>oposta</b> (N↔S, L↔O): o último movimento é o primeiro desfeito.</li>
+        <li>As duas caixas-pretas (<b>principal</b> e <b>reserva</b>) precisam ter <b>os mesmos eventos</b>, em qualquer ordem.</li>
       </ul>
       <div class="big"><span class="seg-b">B</span> <span class="seg-ida">w</span> <span class="seg-e">E</span> <span class="seg-volta">inv(w)</span> <span class="seg-b">B</span> <span class="seg-sep">#</span> <span class="seg-x">x</span> <span class="seg-sep">|</span> <span class="seg-y">y</span></div>
       <div class="big" style="font-size:28px"><span class="seg-b">B</span><span class="seg-ida">NLLN</span><span class="seg-e">E</span><span class="seg-volta">SOOS</span><span class="seg-b">B</span><span class="seg-sep">#</span><span class="seg-x">gvag</span><span class="seg-sep">|</span><span class="seg-y">aggv</span></div>
-      <table style="font-size:15px; margin-top:8px">
-        <tr><th>Símbolo</th><th>Significado</th><th>Símbolo</th><th>Significado</th></tr>
-        <tr><td><code>N S L O</code></td><td>norte, sul, leste, oeste</td><td><code>g</code></td><td>leitura de GPS</td></tr>
-        <tr><td><code>B</code> / <code>E</code></td><td>base / ponto de entrega</td><td><code>a</code></td><td>alerta de bateria</td></tr>
-        <tr><td><code>#</code> / <code>|</code></td><td>separa rota e registros / principal e reserva</td><td><code>v</code></td><td>rajada de vento</td></tr>
-      </table>
+      <p class="nota" style="text-align:center; margin:0 0 6px">B base · N S L O direções · E entrega · # fim do voo · g a v = GPS, bateria, vento · | principal/reserva</p>
+      <div class="fluxo" style="margin:14px 0 0">
+        <div class="caixa ap"><b>Etapa 1 · AP</b>a volta desfaz a ida?<br><small>pilha</small></div>
+        <div class="seta">→</div>
+        <div class="caixa all"><b>Etapa 2 · ALL</b>as caixas-pretas batem?<br><small>fita limitada</small></div>
+        <div class="seta">→</div>
+        <div class="caixa ok">ACEITA</div>
+      </div>
+      <p class="nota" style="text-align:center; margin-top:6px">O ALL só roda se o AP aceitar. Símbolo fora do alfabeto gera erro antes de tudo.</p>
     </div>
-    <div style="flex:0.65; text-align:center">
+    <div style="flex:0.6; text-align:center">
       <svg viewBox="0 0 300 330" width="300" height="330" font-family="DejaVu Sans, sans-serif">
         <defs>
           <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1565c0"/></marker>
@@ -120,222 +120,64 @@
         <text x="150" y="312" font-size="15" text-anchor="middle" fill="#1565c0">ida: N L L N</text>
         <text x="150" y="330" font-size="15" text-anchor="middle" fill="#d9701a">volta: S O O S</text>
       </svg>
-      <p class="nota" style="margin-top:4px">O último passo da ida (N) é o primeiro desfeito (S).</p>
     </div>
   </div>
 </section>
 
-<!-- 3 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Controle de voo em duas etapas</h2>
-  <p class="sub">Primeiro a estrutura (pilha); depois a dependência sensível ao contexto (fita)</p>
-  <div class="fluxo">
-    <div class="caixa">Cadeia de entrada<br><span class="mono" style="font-size:14px">BNLLNESOOSB#gvag|aggv</span></div>
-    <div class="seta">→</div>
-    <div class="caixa"><b>Alfabeto Σ</b>símbolos válidos?</div>
-    <div class="seta">→</div>
-    <div class="caixa ap"><b>Etapa 1: AP</b>estrutura da GLC<br>volta desfaz a ida</div>
-    <div class="seta">→</div>
-    <div class="caixa all"><b>Etapa 2: ALL</b>trecho após <code>#</code><br>y é permutação de x?</div>
-    <div class="seta">→</div>
-    <div class="caixa ok">ACEITA</div>
-  </div>
-  <div class="fluxo" style="margin-top:0; gap:60px">
-    <div class="ramo" style="width:190px"></div>
-    <div class="ramo">↓ não<br><span class="caixa no" style="display:inline-block; min-width:0; padding:6px 10px; font-size:15px">ERRO + mensagem</span></div>
-    <div class="ramo">↓ rejeita<br><span class="caixa no" style="display:inline-block; min-width:0; padding:6px 10px; font-size:15px">REJEITA_AP<br>(ALL não executa)</span></div>
-    <div class="ramo">↓ rejeita<br><span class="caixa no" style="display:inline-block; min-width:0; padding:6px 10px; font-size:15px">REJEITA_ALL</span></div>
-  </div>
-  <div class="cols" style="margin-top:22px">
-    <div class="card"><h3>AP: o que ele garante</h3><p>Partida e chegada na base, rota não vazia, volta = <code>inv(ida)</code>, um <code>#</code>, dois registros não vazios separados por um <code>|</code>.</p></div>
-    <div class="card lar"><h3>ALL: o que ele audita</h3><p>Cada evento do principal tem par no reserva e não sobra evento: <code>#g</code>, <code>#a</code> e <code>#v</code> iguais nos dois registros.</p></div>
-  </div>
-</section>
-
-<!-- 4 ─────────────────────────────────────────────── -->
-<section>
-  <h2>O plano de voo como gramática (GLC)</h2>
-  <p class="sub">G = (V, Σ, P, P) · V = {P, R, G} · Σ = {B, N, S, L, O, E, #, |, g, a, v} · símbolo inicial P</p>
-  <div class="cols">
-    <div style="flex:1.05">
-      <div class="prod">
-        <span class="nt">P</span> → <span class="t">B</span> <span class="nt">R</span> <span class="t">B</span> <span class="t">#</span> <span class="nt">G</span> <span class="t">'|'</span> <span class="nt">G</span><br>
-        <span class="nt">R</span> → <span class="t">N</span> <span class="nt">R</span> <span class="t">S</span> <span class="bar">|</span> <span class="t">S</span> <span class="nt">R</span> <span class="t">N</span> <span class="bar">|</span> <span class="t">L</span> <span class="nt">R</span> <span class="t">O</span> <span class="bar">|</span> <span class="t">O</span> <span class="nt">R</span> <span class="t">L</span><br>
-        &nbsp;&nbsp;&nbsp;<span class="bar">|</span> <span class="t">N E S</span> <span class="bar">|</span> <span class="t">S E N</span> <span class="bar">|</span> <span class="t">L E O</span> <span class="bar">|</span> <span class="t">O E L</span><br>
+<section class="compacto">
+  <h2>Etapa 1: a gramática vira uma pilha</h2>
+  <p class="sub">GLC → autômato de pilha (9 estados, determinístico, aceita por estado final)</p>
+  <div class="cols" style="gap:28px">
+    <div>
+      <div class="prod" style="font-size:17px; line-height:1.6">
+        <span class="nt">P</span> → <span class="t">B</span> <span class="nt">R</span> <span class="t">B # </span><span class="nt">G</span> <span class="t">|</span> <span class="nt">G</span><br>
+        <span class="nt">R</span> → <span class="t">N</span> <span class="nt">R</span> <span class="t">S</span> <span class="bar">|</span> <span class="t">L</span> <span class="nt">R</span> <span class="t">O</span> <span class="bar">|</span> … <span class="bar">|</span> <span class="t">N E S</span> <span class="bar">|</span> <span class="t">L E O</span> <span class="bar">|</span> …<br>
         <span class="nt">G</span> → <span class="t">g</span> <span class="nt">G</span> <span class="bar">|</span> <span class="t">a</span> <span class="nt">G</span> <span class="bar">|</span> <span class="t">v</span> <span class="nt">G</span> <span class="bar">|</span> <span class="t">g</span> <span class="bar">|</span> <span class="t">a</span> <span class="bar">|</span> <span class="t">v</span>
       </div>
-      <p class="nota">Terminais em laranja; <span class="t">'|'</span> é o terminal separador, e a barra cinza separa alternativas.</p>
-      <div class="card" style="margin-top:14px">
-        <h3>Regra de formação</h3>
-        <p><span class="nt">R</span> → x <span class="nt">R</span> opp(x) põe um movimento na ida e o seu oposto na volta, <b>aninhados</b>: o primeiro movimento da ida casa com o último da volta.</p>
-        <p><span class="nt">R</span> → x E opp(x) fecha a recursão no ponto de entrega (rota não vazia). <span class="nt">G</span> gera registros não vazios.</p>
-      </div>
-    </div>
-    <div style="flex:0.95">
-      <p style="margin:0 0 4px; font-size:17px"><b>Derivação mais à esquerda</b> de <code>BNLLNESOOSB#gvag|aggv</code></p>
-      <div class="deriv">
-        P ⇒ B<b>R</b>B#G|G <span class="r">P → BRB#G|G</span><br>
-        &nbsp;&nbsp;⇒ BN<b>R</b>SB#G|G <span class="r">R → NRS</span><br>
+      <p style="font-size:16px; margin:10px 0 2px"><b>Derivação de</b> <code>BNLLNESOOSB#gvag|aggv</code></p>
+      <div class="deriv" style="font-size:14.5px">
+        P ⇒ B<b>R</b>B#G|G <span class="r">R → NRS</span><br>
+        &nbsp;&nbsp;⇒ BN<b>R</b>SB#G|G <span class="r">R → LRO</span><br>
         &nbsp;&nbsp;⇒ BNL<b>R</b>OSB#G|G <span class="r">R → LRO</span><br>
-        &nbsp;&nbsp;⇒ BNLL<b>R</b>OOSB#G|G <span class="r">R → LRO</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#<b>G</b>|G <span class="r">R → NES</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#g<b>G</b>|G <span class="r">G → gG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gv<b>G</b>|G <span class="r">G → vG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gva<b>G</b>|G <span class="r">G → aG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gvag|<b>G</b> <span class="r">G → g</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gvag|a<b>G</b> <span class="r">G → aG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gvag|ag<b>G</b> <span class="r">G → gG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gvag|agg<b>G</b> <span class="r">G → gG</span><br>
-        &nbsp;&nbsp;⇒ BNLLNESOOSB#gvag|aggv <span class="r">G → v</span>
+        &nbsp;&nbsp;⇒ BNLL<b>R</b>OOSB#G|G <span class="r">R → NES</span><br>
+        &nbsp;&nbsp;⇒ BNLLNESOOSB#<b>G</b>|G ⇒* BNLLNESOOSB#gvag|aggv
       </div>
+      <div class="card lar" style="margin-top:12px"><h3>GLC ↔ AP: a pilha guarda promessas</h3>
+        <p><code>R → x R opp(x)</code> promete o oposto para <b>depois</b>. O AP faz igual: na ida, lê N e <b>empilha S</b>; na volta, cada símbolo lido tem que ser o <b>topo</b> e desempilha. Depois da ida, a pilha é <code>S O O S</code>: o caminho de volta que falta voar.</p></div>
+    </div>
+    <div>
+      <div class="diag"><img src="img/diagrama_ap.svg" alt="Diagrama de estados do AP" style="width:100%"></div>
+      <div class="card"><h3>Por que pilha (e não autômato finito)?</h3>
+        <p>Um AFD tem memória finita e não lembra quantos movimentos faltam desfazer. Pelo lema do bombeamento, <code>B Nᵖ E Sᵖ B#g|g</code> deixa de ser aceita ao bombear os N. A linguagem é <b>livre de contexto, não regular</b>.</p></div>
     </div>
   </div>
 </section>
 
-<!-- 5 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Etapa 1: autômato de pilha, o diário de bordo da volta</h2>
-  <p class="sub">M = (Q, Σ, Γ, δ, q0, Z, F) · Q = {q0, …, q8} (9 estados) · Γ = {N, S, L, O, Z} · F = {q8}</p>
-  <div class="diag"><img src="img/diagrama_ap.svg" style="height:440px" alt="Diagrama de estados do AP"></div>
-  <p style="font-size:17px; margin:4px 0"><b>Configuração inicial:</b> (q0, w, Z). <b>Aceitação por estado final:</b> a entrada precisa ser consumida <b>por inteiro</b> e o AP precisa parar em q8. Se não houver transição, a cadeia é rejeitada.</p>
-</section>
-
-<!-- 6 ─────────────────────────────────────────────── -->
 <section class="compacto">
-  <h2>A pilha em ação: último movimento, primeiro a desfazer</h2>
-  <p class="sub">Rastreamento real: <code>python3 main.py --modulo ap "BNLLNESOOSB#gvag|aggv"</code></p>
-  <div class="cols">
-    <div style="flex:1.45">
-<pre>passo  estado pos  entrada restante       pilha (topo→base)  transição
-    0  q0       0  BNLLNESOOSB#gvag|aggv  Z                  δ(q0, B, Z) = (q1, Z)
-    1  q1       1  NLLNESOOSB#gvag|aggv   Z                  δ(q1, N, Z) = (q2, <span class="hl">SZ</span>)
-    2  q2       2  LLNESOOSB#gvag|aggv    SZ                 δ(q2, L, S) = (q2, <span class="hl">OS</span>)
-    3  q2       3  LNESOOSB#gvag|aggv     OSZ                δ(q2, L, O) = (q2, <span class="hl">OO</span>)
-    4  q2       4  NESOOSB#gvag|aggv      OOSZ               δ(q2, N, O) = (q2, <span class="hl">SO</span>)
-    5  q2       5  ESOOSB#gvag|aggv       <span class="hl">SOOSZ</span>              δ(q2, E, S) = (q3, S)
-    6  q3       6  SOOSB#gvag|aggv        SOOSZ              δ(q3, S, S) = (q3, <span class="hl">ε</span>)
-    7  q3       7  OOSB#gvag|aggv         OOSZ               δ(q3, O, O) = (q3, <span class="hl">ε</span>)
-    8  q3       8  OSB#gvag|aggv          OSZ                δ(q3, O, O) = (q3, <span class="hl">ε</span>)
-    9  q3       9  SB#gvag|aggv           SZ                 δ(q3, S, S) = (q3, <span class="hl">ε</span>)
-   10  q3      10  B#gvag|aggv            <span class="hl">Z</span>                  δ(q3, B, Z) = (q4, Z)
-   11  q4      11  #gvag|aggv             Z                  δ(q4, #, Z) = (q5, Z)
-  ...
-   21  q8      21  ε                      Z
-<span class="ok">[AP] aceita: entrada consumida no estado final q8</span></pre>
-    </div>
-    <div style="flex:0.75">
-      <div class="card"><h3>A pilha guarda a volta pendente</h3><p>Ler N empilha S, ler L empilha O. O topo é sempre o próximo movimento a desfazer (LIFO).</p></div>
-      <div class="card"><h3>GLC ↔ AP</h3><p>Em <span class="nt">R</span> → x <span class="nt">R</span> opp(x), o terminal opp(x) só aparece depois de tudo o que <span class="nt">R</span> gera. O AP faz o mesmo: empilha opp(x) e só o confere na volta. <code>B</code> com Z no topo = todas as voltas feitas.</p></div>
-      <div class="card lar"><h3>Determinístico e finito</h3><p>Há no máximo uma δ por (estado, símbolo, topo) e nenhuma ε-transição. Cada passo consome um símbolo, então o AP para em ≤ n passos.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- 7 ─────────────────────────────────────────────── -->
-<section class="maior">
-  <h2>Por que precisamos de pilha… e depois de fita?</h2>
-  <p class="sub">Classificação das duas linguagens (lema do bombeamento + propriedades de fechamento)</p>
-  <div class="cols">
+  <h2>Etapa 2: o ALL confere as caixas-pretas</h2>
+  <p class="sub">Autômato linearmente limitado (12 estados): risca os pares com X, como em duas listas de compras</p>
+  <div class="cols" style="gap:28px">
     <div>
-      <div class="card">
-        <h3>L<sub>AP</sub>: livre de contexto, não regular</h3>
-        <p><b>LLC:</b> é gerada pela GLC e reconhecida pelo AP.</p>
-        <p><b>Não regular:</b> suponha que seja, com constante p. Tome s = <code>B N<sup>p</sup> E S<sup>p</sup> B#g|g</code>. Como |xy| ≤ p, y cai em <code>B N…</code>:</p>
-        <ul>
-          <li>se y contém B, bombear para baixo remove a base;</li>
-          <li>se y = N<sup>k</sup>, então xy²z = <code>B N<sup>p+k</sup> E S<sup>p</sup> B#g|g</code> ∉ L<sub>AP</sub>.</li>
-        </ul>
-        <p>Contradição. Um AFD não conta N's sem limite.</p>
-      </div>
-    </div>
-    <div>
-      <div class="card lar">
-        <h3>L<sub>ALL</sub> = { x|y : y é permutação de x }: LSC, não LLC</h3>
-        <p><b>LSC:</b> é reconhecida por um ALL (Kuroda, 1964: ALL ⇔ LSC).</p>
-        <p><b>Não LLC:</b> as LLC são fechadas sob ∩ com regulares. Se L<sub>ALL</sub> fosse LLC, então<br>
-        L<sub>ALL</sub> ∩ <code>g*a*|g*a*</code> = { <code>g<sup>i</sup>a<sup>j</sup>|g<sup>i</sup>a<sup>j</sup></code> } também seria.</p>
-        <p>Bombeie s = <code>g<sup>p</sup>a<sup>p</sup>|g<sup>p</sup>a<sup>p</sup></code>: como |vxy| ≤ p, vxy toca no máximo dois blocos vizinhos. Bombear desequilibra um dos lados (ou tira o <code>|</code>). Contradição.</p>
-        <p class="nota">Intuição: a pilha casa dependências <b>aninhadas</b>; aqui elas são <b>cruzadas</b> (g com g, a com a).</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 8 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Etapa 2: ALL, a auditoria das caixas-pretas</h2>
-  <p class="sub">M = (Q, Σ, Γ, δ, q0, &lt;, &gt;, qac, qrej) · 12 estados · Σ = {g, a, v, |} · Γ = Σ ∪ {X, &lt;, &gt;}</p>
-  <div class="cols">
-    <div style="flex:0 0 270px">
-      <ol style="padding-left:22px; margin-top:4px">
-        <li style="font-size:15.5px"><b>q1</b> acha o próximo evento não marcado do principal, troca por <b>X</b> e guarda o tipo no estado (<b>cg / ca / cv</b>).</li>
-        <li style="font-size:15.5px">Atravessa o <code>|</code>; em <b>bg / ba / bv</b> marca o <b>primeiro igual</b> não marcado do reserva.</li>
-        <li style="font-size:15.5px"><b>qr</b> volta até <code>&lt;</code> e o ciclo recomeça.</li>
-        <li style="font-size:15.5px">Principal todo X: <b>qv</b> exige o reserva todo X até o <code>&gt;</code>, e então <b>qac</b>.</li>
-        <li style="font-size:15.5px">Sem transição definida → <b>qrej</b> (falta par, sobra evento, separador errado).</li>
+      <ol style="font-size:17px; margin:0; padding-left:22px">
+        <li><b>q1</b> risca (X) o próximo evento do principal e o guarda <b>no estado</b> (cg / ca / cv).</li>
+        <li><b>b<sub>e</sub></b> procura no reserva o primeiro igual ainda não riscado e o risca.</li>
+        <li><b>qr</b> volta até <code>&lt;</code> e repete o ciclo.</li>
+        <li>Principal todo riscado? <b>qv</b> exige o reserva todo X até o <code>&gt;</code>: <b>aceita</b>. Sem par ou com sobra: <b>rejeita</b>.</li>
       </ol>
-    </div>
-    <div class="diag" style="flex:1"><img src="img/diagrama_all.svg" style="height:470px; max-width:none" alt="Diagrama de estados do ALL"></div>
-  </div>
-</section>
-
-<!-- 9 ─────────────────────────────────────────────── -->
-<section>
-  <h2>A fita em ação: n células, dois marcadores fixos</h2>
-  <p class="sub">Rastreamento real: <code>python3 main.py --modulo all "gvag|aggv"</code></p>
-  <div class="cols">
-    <div style="flex:1.3">
-<pre>passo  estado cab  fita ([ ] = cabeçote)              transição
-    0  q0       0  [<] g  v  a  g  |  a  g  g  v  >   δ(q0, <) = (q1, <, D)
-    1  q1       1   < [g] v  a  g  |  a  g  g  v  >   δ(q1, g) = (<span class="hl">cg, X</span>, D)
-    2  cg       2   <  X [v] a  g  |  a  g  g  v  >   δ(cg, v) = (cg, v, D)
-    3  cg       3   <  X  v [a] g  |  a  g  g  v  >   δ(cg, a) = (cg, a, D)
-    4  cg       4   <  X  v  a [g] |  a  g  g  v  >   δ(cg, g) = (cg, g, D)
-    5  cg       5   <  X  v  a  g [|] a  g  g  v  >   δ(cg, |) = (bg, |, D)
-    6  bg       6   <  X  v  a  g  | [a] g  g  v  >   δ(bg, a) = (bg, a, D)
-    7  bg       7   <  X  v  a  g  |  a [g] g  v  >   δ(bg, g) = (<span class="hl">qr, X</span>, E)
-    8  qr       6   <  X  v  a  g  | [a] X  g  v  >   δ(qr, a) = (qr, a, E)
-   ...
-   14  qr       0  [<] X  v  a  g  |  a  X  g  v  >   δ(qr, <) = (q1, <, D)
-   ...
-   70  qv      10   <  X  X  X  X  |  X  X  X  X [>]  δ(qv, >) = (qac, >, P)
-   71  qac     10   <  X  X  X  X  |  X  X  X  X [>]
-<span class="ok">[ALL] aceita: todo evento do principal tem um par no reserva</span></pre>
-    </div>
-    <div style="flex:0.7">
-      <div class="card"><h3>Fita limitada</h3><p><code>&lt; x|y &gt;</code>: as n células da entrada mais 2 marcadores. Os marcadores nunca são sobrescritos e o cabeçote não passa deles (o simulador lança erro se uma δ tentar).</p></div>
-      <div class="card lar"><h3>Por que sempre termina</h3><p>Cada ciclo q1→c→b→qr marca 1 evento do principal (X nunca é desfeito), então há ≤ n ciclos. Cada varredura cobre ≤ n+2 células. Total: <b>O(n²)</b> passos.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- 10 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Por dentro do simulador</h2>
-  <p class="sub">Python 3, só a biblioteca padrão: nada para instalar</p>
-  <div class="cols">
-    <div>
-      <table>
-        <tr><th>Arquivo</th><th>Papel</th></tr>
-        <tr><td><code>automato_pilha.py</code></td><td>δ do AP como dicionário + simulador com rastro</td></tr>
-        <tr><td><code>automato_linear.py</code></td><td>δ do ALL + fita com marcadores + simulador</td></tr>
-        <tr><td><code>main.py</code></td><td>alfabeto, fluxo em 2 etapas, rastreamentos (CLI)</td></tr>
-        <tr><td><code>visualizador.py</code></td><td>painel interativo no navegador: pilotar, replay e desafio</td></tr>
-        <tr><td><code>compilador.py</code></td><td>visão de compilador: léxico → AP → ALL → código</td></tr>
-        <tr><td><code>testes.py</code> + <code>casos_teste.csv</code></td><td>casos fixos + oráculo independente</td></tr>
-      </table>
+      <pre style="font-size:17px; margin-top:12px">&lt; g v a g | a g g v &gt;     início
+&lt; X X X X | X X X X &gt;     <span class="ok">aceita (qac)</span>
+&lt; X X a g | a X g g &gt;     <span class="no">rejeita: o v não tem par</span></pre>
+      <div class="card"><h3>Fita limitada e sempre termina</h3>
+        <p>Usa só as n células da entrada, entre os marcadores fixos <code>&lt;</code> e <code>&gt;</code>. Cada ciclo risca 1 evento, então são no máximo n ciclos: O(n²) passos.</p></div>
     </div>
     <div>
-      <div class="card"><h3>A decisão vem de δ</h3><p>Cada passo é uma consulta <code>DELTA[(estado, símbolo, topo)]</code> ou <code>DELTA[(estado, lido)]</code>. Não existe regex nem contagem no caminho da decisão (só no oráculo dos testes).</p></div>
-      <div class="card"><h3>Sem não determinismo</h3><p>AP e ALL são determinísticos, então não há backtracking. Sem transição = rejeita, com o motivo exibido.</p></div>
-      <div class="card lar"><h3>Símbolo fora do alfabeto</h3>
-<pre style="font-size:12px; white-space:pre-wrap">$ python3 main.py "BNLLNESOOSB#gvxg|aggv"
-<span class="no">ERRO: o 15º símbolo, 'x', não pertence ao alfabeto de entrada {B, N, S, L, O, E, #, |, g, a, v}</span></pre></div>
+      <div class="diag"><img src="img/diagrama_all.svg" alt="Diagrama de estados do ALL" style="width:100%"></div>
+      <div class="card lar"><h3>Por que a pilha não basta?</h3>
+        <p>A pilha casa dependências <b>aninhadas</b>. Aqui elas são <b>cruzadas</b>: ∩ <code>g*a*|g*a*</code> dá <code>gⁱaʲ|gⁱaʲ</code>, que o bombeamento mostra não ser LLC. Como existe um ALL que a reconhece, ela é <b>sensível ao contexto</b> (Kuroda, 1964).</p></div>
     </div>
   </div>
 </section>
 
-<!-- 10b ─── visão de compilador -->
 <section>
   <h2>Do drone ao compilador</h2>
   <p class="sub">O mesmo voo passa pelas fases de um compilador, e cada fase usa um nível da hierarquia de Chomsky</p>
@@ -369,84 +211,58 @@
   </div>
 </section>
 
-<!-- 11 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Demonstração ao vivo no visualizador</h2>
-  <p class="sub">Painel de missão: o drone voa a rota enquanto a pilha empilha e desempilha; depois a fita do ALL marca os X</p>
-  <pre style="font-size:20px; padding:12px 18px; margin:4px 0 14px">$ <span class="hl">python3 visualizador.py</span>      → abre o painel (ou duplo clique em web/index.html)
-  online: andreyyrson.github.io/validador-drone-ap-all/web</pre>
-  <table>
-    <tr><th>Missão (preset)</th><th>Entrada</th><th>AP</th><th>ALL</th><th>Decisão</th></tr>
-    <tr><td>1. Entrega perfeita</td><td><code>BNLLNESOOSB#gvag|aggv</code></td><td>aceita</td><td>aceita</td><td style="color:var(--verde)"><b>ACEITA</b></td></tr>
-    <tr><td>2. Volta errada</td><td><code>BNLLNESOO<b>N</b>B#gvag|aggv</code></td><td>rejeita: δ(q3, N, S) indefinida</td><td>não executa</td><td style="color:var(--verm)"><b>REJEITA_AP</b></td></tr>
-    <tr><td>3. Caixa-preta adulterada</td><td><code>BNLLNESOOSB#gvag|agg<b>g</b></code></td><td>aceita</td><td>rejeita: δ(bv, &gt;) indefinida</td><td style="color:var(--verm)"><b>REJEITA_ALL</b></td></tr>
-  </table>
-  <div class="cols" style="margin-top:16px">
-    <div class="card lar" style="flex:1.2"><h3>Dinâmica com a turma</h3><p>Antes de cada missão, a turma vota: <b>ACEITA</b> ou <b>REJEITA</b>? Só então rodamos e conferimos a previsão nas operações da pilha e da fita. O professor pode <b>pilotar o drone</b> pelas setas e ver a pilha reagir ao vivo, ou usar o modo <b>Desafio</b> (missões sorteadas, com placar).</p></div>
-    <div class="card" style="flex:0.8"><h3>Plano B (terminal)</h3><p><code>python3 main.py --demo</code><br>ou <code>python3 main.py "&lt;cadeia&gt;"</code> (aspas por causa de <code>|</code> e <code>#</code>)</p></div>
-  </div>
-</section>
-
-<!-- 12 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Testes de voo: 44 casos, 0 falhas</h2>
-  <p class="sub"><code>python3 testes.py</code> → tabela no terminal + <code>resultados_testes.md</code> (entrada, esperado, obtido, regra, motivo)</p>
-  <table>
-    <tr><th>Módulo</th><th>Aceitas</th><th>Rejeitadas</th><th>Erro de alfabeto</th><th>Casos-limite</th></tr>
-    <tr><td><b>AP</b></td><td>9</td><td>11</td><td>(na integração)</td><td><code>BNESB#g|g</code> (menor aceita) · entrada vazia</td></tr>
-    <tr><td><b>ALL</b></td><td>9</td><td>10</td><td>1 (<code>N</code> fora de {g,a,v,|})</td><td><code>|</code> (menor aceita) · entrada vazia</td></tr>
-    <tr><td><b>Integração</b></td><td>1</td><td>2 (uma no AP, uma no ALL)</td><td>1 (<code>x</code>)</td><td></td></tr>
-  </table>
-  <div class="cols" style="margin-top:18px">
-    <div class="card"><h3>Cobertura das regras</h3><ul>
-      <li>AP: volta errada, volta FIFO, volta curta/longa, sem base, rota vazia, sem <code>#</code>, registro faltando ou extra</li>
-      <li>ALL: evento trocado, perdido ou a mais, sem <code>|</code>, dois <code>|</code>, um lado vazio</li>
-    </ul></div>
-    <div class="card lar"><h3>Prova extra</h3><p>Todas as cadeias têm <b>≥ 18 símbolos</b>, exceto os casos-limite. Os simuladores também foram comparados com um <b>oráculo independente</b> (regex/contagem) em <b>6000 cadeias aleatórias</b>: 0 divergências.</p></div>
-  </div>
-</section>
-
-<!-- 13 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Turbulências: limitações observadas</h2>
-  <p class="sub">O que os testes revelaram sobre o modelo</p>
-  <div class="cols">
-    <div>
-      <div class="card"><h3>1. Voltar não é o mesmo que refazer o caminho</h3>
-        <p><code>BNLESOB#gvaga|gvaga</code> (teste AP #11): o drone faz N, L e volta S, O. Geometricamente ele chega à base, mas é <b>rejeitado</b>, porque o modelo exige desfazer na ordem LIFO.</p>
-        <p>"Voltar à base por qualquer caminho" (#N = #S e #L = #O) <b>nem é LLC</b>: ∩ <code>N*L*S*O*</code> = { N<sup>i</sup>L<sup>j</sup>S<sup>i</sup>O<sup>j</sup> }, dependência cruzada.</p></div>
+<section class="compacto">
+  <h2>Hora do jogo: pilote o drone</h2>
+  <p class="sub">Cada tecla é uma transição do AP; cada X na fita é um passo do ALL</p>
+  <div class="cols" style="gap:28px">
+    <div style="flex:1.75">
+      <div class="card"><h3>1 · Pilotar</h3><p><b>↑ ↓ → ←</b> = N S L O · <b>B</b> base · <b>E</b> entrega · <b># g a v |</b> caixas-pretas · <b>⌫</b> desfaz</p>
+        <p>A pilha cresce na ida e esvazia na volta; a seta verde mostra o que o topo exige; <b>✕</b> = o AP travou.</p></div>
+      <div class="card lar"><h3>2 · Validar (Enter)</h3><p>Animação do AP e, depois, do ALL riscando a fita com X. No fim, a <b>visão de compilador</b>: tokens → árvore de derivação → código gerado.</p></div>
+      <div class="card"><h3>3 · Desafio</h3><p>O painel sorteia uma missão e a turma vota: <b>1</b> Aceita · <b>2</b> Rejeita no AP · <b>3</b> Rejeita no ALL. A animação mostra o porquê, e o placar fica na tela.</p></div>
+      <table style="font-size:15px; margin-top:6px">
+        <tr><th>Cenário obrigatório</th><th>Entrada</th><th>Decisão</th></tr>
+        <tr><td>✔ Missão perfeita</td><td><code>BNLLNESOOSB#gvag|aggv</code></td><td style="color:var(--verde)"><b>AP e ALL aceitam</b></td></tr>
+        <tr><td>✘ Volta errada</td><td><code>BNLLNESOO<b>N</b>B#gvag|aggv</code></td><td style="color:var(--verm)"><b>AP rejeita (ALL não roda)</b></td></tr>
+        <tr><td>✘ Caixa-preta divergente</td><td><code>BNLLNESOOSB#gvag|agg<b>g</b></code></td><td style="color:var(--verm)"><b>AP aceita; ALL rejeita</b></td></tr>
+      </table>
     </div>
-    <div>
-      <div class="card lar"><h3>2. A fita custa O(n²) passos</h3>
-        <table style="font-size:15px">
-          <tr><th>tamanho de x|y</th><th>9</th><th>19</th><th>21</th><th>43</th></tr>
-          <tr><td>passos do ALL</td><td>71</td><td>291</td><td>353</td><td>1431</td></tr>
-        </table>
-        <p class="nota">O AP, por comparação, faz exatamente n passos.</p></div>
-      <div class="card"><h3>3. Permutação, de propósito</h3><p>O ALL aceita <code>gvag|aggv</code>: por projeto, ele não detecta troca de <b>ordem</b> entre as caixas-pretas, só falta, sobra ou troca de eventos.</p></div>
+    <div style="flex:1; text-align:center">
+      <a href="https://andreyyrson.github.io/validador-drone-ap-all/"><img src="img/qr-painel.svg" alt="QR code do painel" style="width:270px; height:270px; margin-top:6px"></a>
+      <p style="font-size:21px; margin:8px 0 2px; color:var(--azul)"><b>Jogue no celular</b></p>
+      <p style="font-size:16px; margin:0"><a href="https://andreyyrson.github.io/validador-drone-ap-all/" style="color:var(--laranja)">andreyyrson.github.io/validador-drone-ap-all</a></p>
+      <div class="card" style="text-align:left; margin-top:16px"><h3>Plano B (sem internet)</h3><p><code>python3 visualizador.py</code> ou <code>python3 main.py --demo</code></p></div>
     </div>
   </div>
 </section>
 
-<!-- 14 ─────────────────────────────────────────────── -->
-<section>
-  <h2>Missão cumprida: referências e uso de IA</h2>
+<section class="compacto">
+  <h2>Missão cumprida: testes, limitação e referências</h2>
   <p class="sub">Obrigado! Perguntas?</p>
-  <div class="cols">
-    <div style="flex:1.3">
-      <ul style="font-size:16px">
-        <li style="font-size:15.5px">SIPSER, M. <i>Introdução à Teoria da Computação</i>. 2. ed. Cengage Learning, 2007. (Lema do bombeamento, AP, LLC, ALL.)</li>
-        <li style="font-size:15.5px">HOPCROFT, J. E.; MOTWANI, R.; ULLMAN, J. D. <i>Introdução à Teoria de Autômatos, Linguagens e Computação</i>. Campus/Elsevier, 2002. (AP, fechamento das LLC.)</li>
-        <li style="font-size:15.5px">MENEZES, P. B. <i>Linguagens Formais e Autômatos</i>. 6. ed. Porto Alegre: Bookman, 2011. (ALL e hierarquia de Chomsky.)</li>
-        <li style="font-size:15.5px">KURODA, S.-Y. Classes of languages and linear-bounded automata. <i>Information and Control</i>, v. 7, n. 2, p. 207–223, 1964.</li>
+  <div class="cols" style="gap:28px">
+    <div style="flex:1.25">
+      <table style="font-size:15.5px">
+        <tr><th>python3 testes.py</th><th>Aceitas</th><th>Rejeitadas</th><th>Extra</th></tr>
+        <tr><td><b>AP</b></td><td>9</td><td>11</td><td>menor cadeia e entrada vazia</td></tr>
+        <tr><td><b>ALL</b></td><td>9</td><td>10</td><td>+ erro de alfabeto (<code>N</code>)</td></tr>
+        <tr><td><b>Integração</b></td><td>1</td><td>2 (AP e ALL)</td><td>+ erro de alfabeto (<code>x</code>)</td></tr>
+      </table>
+      <p class="nota" style="margin:6px 0 0"><b>44 casos, 0 falhas.</b> Também: oráculo independente em 6000 cadeias e o painel em JS idêntico ao Python, passo a passo.</p>
+      <div class="card lar" style="margin-top:12px"><h3>Limitação observada: voltar ≠ refazer o caminho</h3>
+        <p><code>BNLESOB#gvaga|gvaga</code> (teste AP nº 11): o drone voa N, L e volta S, O. Ele chega à base, mas é <b>rejeitado</b>, porque o modelo exige desfazer em ordem LIFO. "Voltar por qualquer caminho" (#N = #S e #L = #O) nem é LLC: ∩ <code>N*L*S*O*</code> = NⁱLʲSⁱOʲ.</p></div>
+    </div>
+    <div style="flex:1">
+      <ul style="font-size:13.5px; line-height:1.35; padding-left:18px; margin-top:0">
+        <li style="font-size:14px; line-height:1.35; margin:2px 0">SIPSER, M. <i>Introdução à Teoria da Computação</i>. 2. ed. Cengage, 2007.</li>
+        <li style="font-size:14px; line-height:1.35; margin:2px 0">HOPCROFT; MOTWANI; ULLMAN. <i>Introdução à Teoria de Autômatos, Linguagens e Computação</i>. Campus, 2002.</li>
+        <li style="font-size:14px; line-height:1.35; margin:2px 0">MENEZES, P. B. <i>Linguagens Formais e Autômatos</i>. 6. ed. Bookman, 2011.</li>
+        <li style="font-size:14px; line-height:1.35; margin:2px 0">AHO et al. <i>Compiladores: princípios, técnicas e ferramentas</i>. 2. ed. Pearson, 2008.</li>
+        <li style="font-size:14px; line-height:1.35; margin:2px 0">KURODA, S.-Y. Classes of languages and linear-bounded automata. <i>Information and Control</i>, 1964.</li>
       </ul>
+      <div class="card"><h3>Uso de IA</h3><p>Claude Code (Anthropic) apoiou o código, os testes e a documentação. O autor revisou as especificações, rodou os testes e conferiu os rastreamentos.</p></div>
+      <div style="text-align:center; margin-top:6px"><a href="https://andreyyrson.github.io/validador-drone-ap-all/"><img src="img/qr-painel.svg" alt="QR code do painel" style="width:120px; height:120px"></a>
+        <p class="nota" style="margin:0">o painel continua online</p></div>
     </div>
-    <div style="flex:0.7">
-      <div class="card lar"><h3>Uso de inteligência artificial</h3><p><b>Ferramenta:</b> Claude Code (Anthropic).</p><p><b>Apoio:</b> código, testes, documentação e slides.</p><p><b>Verificação do autor:</b> revisão das especificações, execução dos testes e conferência dos rastreamentos. Detalhes no README.</p></div>
-    </div>
-  </div>
-  <div style="position:absolute; left:60px; right:60px; bottom:60px; text-align:center">
-    <span class="pill">rota: B → E → B</span><span class="pill" style="background:var(--azul)">pilha: LIFO</span><span class="pill" style="background:var(--verde)">fita: n + 2 células</span>
   </div>
 </section>
 
